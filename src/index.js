@@ -11,18 +11,18 @@ const fs = require('fs')
 class UFile {
   /**
    * UFile SDK
-   * @param {string} pubKey api公钥
-   * @param {string} priKey api私钥
-   * @param {string} bucketName 存储空间名
+   * @param {string} publicKey api公钥
+   * @param {string} privateKey api私钥
+   * @param {string} bucket 存储空间名
    * @param {string} domain 存储空间域名
-   * @param {boolean} useHttps=false 是否使用https
+   * @param {boolean} protocol 网络协议头
    */
-  constructor({ pubKey, priKey, bucketName, domain = '.hk.ufileos.com', useHttps = true }) {
-    this._pubKey = pubKey
-    this._priKey = priKey
-    this._bucketName = bucketName
-    this._domain = domain
-    this._protocol = useHttps ? 'https' : 'http'
+  constructor({ publicKey, privateKey, bucket, domain, protocol }) {
+    this._publicKey = publicKey;
+    this._privateKey = privateKey;
+    this._bucket = bucket;
+    this._domain = domain;
+    this._protocol = protocol;
   }
 
   /**
@@ -33,8 +33,9 @@ class UFile {
    * @returns {Promise}
    */
   prefixFileList({ prefix, marker, limit }) {
+    console.log(this);
     return this._request({
-      url: `${this._protocol}://${this._bucketName}${this._domain}`,
+      url: `${this._protocol}://${this._bucket}${this._domain}`,
       query: {
         list: '',
         prefix,
@@ -94,7 +95,7 @@ class UFile {
    */
   uploadHit({ hash, fileName, fileSize }) {
     return this._request({
-      url: `${this._protocol}://${this._bucketName}${this._domain}/uploadhit`,
+      url: `${this._protocol}://${this._bucket}${this._domain}/uploadhit`,
       query: {
         Hash: hash,
         FileName: fileName,
@@ -280,7 +281,7 @@ class UFile {
       key = '/' + key
     }
     if (!url) {
-      url = `${this._protocol}://${this._bucketName}${this._domain}${key}`
+      url = `${this._protocol}://${this._bucket}${this._domain}${key}`
     }
 
     const req = request(method, url)
@@ -306,12 +307,12 @@ class UFile {
     }
     if (query) req.query(query)
     req.use((req) => {
-      req.set('authorization', `UCloud ${this._pubKey}:${this._sign(req, key)}`)
+      req.set('authorization', `UCloud ${this._publicKey}:${this._sign(req, key)}`)
     })
     return req
   }
 
-  sign({ method, headers, bucketName = this._bucketName, key = '' }) {
+  sign({ method, headers, bucket = this._bucket, key = '' }) {
     if (!key.startsWith('/')) {
       key = '/' + key
     }
@@ -323,9 +324,9 @@ class UFile {
           p.push(`${key.toLowerCase()}:${getHeader(key)}`)
         }
       })
-    p.push(`/${bucketName}${key}`)
+    p.push(`/${bucket}${key}`)
     const stringToSign = p.join('\n')
-    return hmacSha1(stringToSign, this._priKey)
+    return hmacSha1(stringToSign, this._privateKey)
 
     function getHeader(key) {
       let r = headers[key] || header[key.toLowerCase()]
@@ -350,9 +351,9 @@ class UFile {
           p.push(`${key.toLowerCase()}:${req.get(key)}`)
         }
       })
-    p.push(`/${this._bucketName}${key}`)
+    p.push(`/${this._bucket}${key}`)
     const stringToSign = p.join('\n')
-    return hmacSha1(stringToSign, this._priKey)
+    return hmacSha1(stringToSign, this._privateKey)
   }
 }
 
@@ -361,8 +362,8 @@ module.exports = UFile
 const UFileBucket = require('./bucket')
 UFile.Bucket = UFileBucket
 
-function hmacSha1(str, priKey, digest = 'base64') {
-  return crypto.createHmac('sha1', priKey).update(str).digest(digest)
+function hmacSha1(str, privateKey, digest = 'base64') {
+  return crypto.createHmac('sha1', privateKey).update(str).digest(digest)
 }
 
 function pascalObject(obj) {

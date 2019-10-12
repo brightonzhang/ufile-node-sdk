@@ -9,7 +9,7 @@ ufile官方的node sdk实现比较悲惨……
 **Kind**: global class  
 
 * [UFile](#UFile)
-    * [new UFile(pubKey, priKey, bucketName, domain, useHttps)](#new_UFile_new)
+    * [new UFile(publicKey, privateKey, bucket, domain, protocol)](#new_UFile_new)
     * [.prefixFileList([prefix], [marker], [limit])](#UFile+prefixFileList) ⇒ <code>Promise</code>
     * [.putFile(key, file, [mimeType])](#UFile+putFile) ⇒ <code>Promise</code>
     * [.uploadHit(hash, fileName, fileSize)](#UFile+uploadHit) ⇒ <code>Promise</code>
@@ -26,17 +26,17 @@ ufile官方的node sdk实现比较悲惨……
 
 <a name="new_UFile_new"></a>
 
-### new UFile(pubKey, priKey, bucketName, domain, useHttps)
+### new UFile(publicKey, privateKey, bucket, domain, protocol)
 UFile SDK
 
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| pubKey | <code>string</code> |  | api公钥 |
-| priKey | <code>string</code> |  | api私钥 |
-| bucketName | <code>string</code> |  | 存储空间名 |
+| publicKey | <code>string</code> |  | api公钥 |
+| privateKey | <code>string</code> |  | api私钥 |
+| bucket | <code>string</code> |  | 存储空间名 |
 | domain | <code>string</code> |  | 存储空间域名 |
-| useHttps | <code>boolean</code> | <code>false</code> | 是否使用https |
+| protocol | <code>boolean</code> | | 网络协议头 |
 
 <a name="UFile+prefixFileList"></a>
 

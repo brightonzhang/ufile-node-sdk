@@ -3,18 +3,15 @@
  */
 'use strict';
 require('should');
+const path = require('path')
 const UFile = require('../')
 
-const ufileBucket = new UFile.Bucket({
-  pubKey: 'uHBkkj_l7DR_XaZVsTDjl_aBVWtM75qk6chz2N0q',
-  priKey: 'DaAW_E3YCOIP8DHOAAJvHXa_n80mvHTuLCQ4hsfgHrpLxdW34HLoTmGDDkA6QOXw',
-})
+const config = require(path.resolve(process.cwd(), './ufile-config'));
 
-const ufile = new UFile({
-  pubKey: 'uHBkkj_l7DR_XaZVsTDjl_aBVWtM75qk6chz2N0q',
-  priKey: 'DaAW_E3YCOIP8DHOAAJvHXa_n80mvHTuLCQ4hsfgHrpLxdW34HLoTmGDDkA6QOXw',
-  bucketName: 'charbo',
-})
+
+const ufileBucket = new UFile.Bucket(config)
+
+const ufile = new UFile(config)
 
 describe('UFile SDK Test', function () {
   it('GetProjectList', async function () {

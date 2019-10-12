@@ -9,12 +9,12 @@ const pascalCase = require('pascal-case')
 class UFileBucket {
   /**
    * UFileBucket SDK
-   * @param {string} pubKey api公钥
-   * @param {string} priKey api私钥
+   * @param {string} publicKey api公钥
+   * @param {string} privateKey api私钥
    */
-  constructor ({pubKey, priKey}) {
-    this._pubKey = pubKey
-    this._priKey = priKey
+  constructor ({publicKey, privateKey}) {
+    this._publicKey = publicKey
+    this._privateKey = privateKey
   }
 
 
@@ -31,9 +31,9 @@ class UFileBucket {
 
   /**
    * 创建Bucket
-   * @param {string} bucketName 待创建Bucket的名称，具有全局唯一性
-   * BucketName参数将构成域名的一部分(与Bucket默认关联的域名为<BucketName>.ufile.ucloud.cn)，必须具有全局唯一性。
-   * BucketName参数必须符合Bucket名称规范,规范如下:
+   * @param {string} bucket 待创建Bucket的名称，具有全局唯一性
+   * bucket参数将构成域名的一部分(与Bucket默认关联的域名为<bucket>.ufile.ucloud.cn)，必须具有全局唯一性。
+   * bucket参数必须符合Bucket名称规范,规范如下:
    * 1. 长度在3~63字节之间
    * 2. 可以由多个标签组成，各个标签用 . 间隔，每个标签只能包含小字母、数字、连接符（短横线），并且标签的开头和结尾的字符只能是小写字母或数字
    * 3. 不可以是IP地址。
@@ -42,41 +42,41 @@ class UFileBucket {
    * @param {string} [projectId] 项目ID
    * @returns {Promise}
    */
-  createBucket({bucketName, type, region, projectId}) {
-    return this._request({body: {action: 'CreateBucket', bucketName, type, region, projectId}})
+  createBucket({bucket, type, region, projectId}) {
+    return this._request({body: {action: 'CreateBucket', bucket, type, region, projectId}})
   }
 
   /**
    * 获取Bucket信息
-   * @param {string} [bucketName] 待获取Bucket的名称，若不提供，则获取所有Bucket
+   * @param {string} [bucket] 待获取Bucket的名称，若不提供，则获取所有Bucket
    * @param {number} [offset] 获取所有Bucket列表的偏移数目，默认为0
    * @param {number} [limit] 获取所有Bucket列表的限制数目，默认为20
    * @param {string} [projectId] 项目ID
    * @returns {Promise}
    */
-  describeBucket({bucketName, offset, limit, projectId}) {
-    return this._request({body: {action: 'DescribeBucket', bucketName, offset, limit, projectId}})
+  describeBucket({bucket, offset, limit, projectId}) {
+    return this._request({body: {action: 'DescribeBucket', bucket, offset, limit, projectId}})
   }
 
   /**
    * 更改Bucket属性
-   * @param {string} bucketName 待修改Bucket的名称
+   * @param {string} bucket 待修改Bucket的名称
    * @param {string} type Bucket访问类型
    * @param {string} [projectId] 项目id
    * @returns {Promise}
    */
-  updateBucket({bucketName, type, projectId}) {
-    return this._request({body: {action: 'UpdateBucket', bucketName, type, projectId}})
+  updateBucket({bucket, type, projectId}) {
+    return this._request({body: {action: 'UpdateBucket', bucket, type, projectId}})
   }
 
   /**
    * 删除Bucket
-   * @param {string} bucketName 待删除Bucket的名称
+   * @param {string} bucket 待删除Bucket的名称
    * @param {string} [projectId] 项目id
    * @returns {Promise}
    */
-  deleteBucket({bucketName, projectId}) {
-    return this._request({body: {action: 'DeleteBucket', bucketName, projectId}})
+  deleteBucket({bucket, projectId}) {
+    return this._request({body: {action: 'DeleteBucket', bucket, projectId}})
   }
 
   /**
@@ -186,7 +186,7 @@ class UFileBucket {
       .sort()
       .reduce((r, key) => {
         return r + key + params[key]
-      }, '') + this._priKey
+      }, '') + this._privateKey
     return sha1(signStr)
   }
 
@@ -201,13 +201,13 @@ class UFileBucket {
       case 'put':
       case 'patch':
         body           = pascalObject(body)
-        body.PublicKey = this._pubKey
+        body.PublicKey = this._publicKey
         body.Signature = this._sign(body)
         req.send(body)
         break
       default:
         query           = pascalObject(query)
-        query.PublicKey = this._pubKey
+        query.PublicKey = this._publicKey
         query.Signature = this._sign(query)
         break
     }
