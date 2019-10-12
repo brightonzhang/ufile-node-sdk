@@ -1,0 +1,33 @@
+{
+  "name": "ufile-rest",
+  "version": "0.0.1",
+  "description": "ufile sdk for ucloud",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/bangbang93/node-ufile-rest.git"
+  },
+  "keywords": [
+    "ufile",
+    "ucloud"
+  ],
+  "author": "bangbang93",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bangbang93/node-ufile-rest/issues"
+  },
+  "homepage": "https://github.com/bangbang93/node-ufile-rest#readme",
+  "dependencies": {
+    "pascal-case": "^2.0.1",
+    "superagent": "^3.6.0"
+  },
+  "devDependencies": {
+    "babel-preset-env": "^1.6.0",
+    "babel-register": "^6.26.0",
+    "mocha": "^3.5.3",
+    "should": "^13.0.1"
+  }
+}
