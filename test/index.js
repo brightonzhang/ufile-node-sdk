@@ -2,7 +2,7 @@
  * Created by bangbang93 on 2017/9/13.
  */
 'use strict';
-require('should');
+const should = require('should');
 const path = require('path')
 const UFile = require('../')
 

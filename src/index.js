@@ -33,7 +33,6 @@ class UFile {
    * @returns {Promise}
    */
   prefixFileList({ prefix, marker, limit }) {
-    console.log(this);
     return this._request({
       url: `${this._protocol}://${this._bucket}${this._domain}`,
       query: {
