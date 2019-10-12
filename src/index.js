@@ -7,7 +7,7 @@ const crypto = require('crypto')
 const pascalCase = require('pascal-case')
 const Stream = require('stream')
 const fs = require('fs')
-
+const mime = require('mime');
 class UFile {
   /**
    * UFile SDK
@@ -51,7 +51,8 @@ class UFile {
    * @param {string} [mimeType='application/octet-stream'] 文件类型
    * @returns {Promise}
    */
-  putFile({ key, file, mimeType = 'application/octet-stream' }) {
+  putFile({ key, file, mimeType = getMimeType(file) }) {
+    // console.log(file);
     switch (true) {
       case file instanceof Buffer:
         return this._request({
@@ -70,6 +71,8 @@ class UFile {
             'content-type': mimeType,
           }
         })
+        // console.log(stream);
+        // return ;
         return new Promise((resolve) => {
           file.pipe(stream)
           file.on('end', resolve)
@@ -80,6 +83,7 @@ class UFile {
           file: fs.createReadStream(file),
           mimeType,
         })
+
       default:
         throw new Error('cannot resolve file')
     }
@@ -343,6 +347,7 @@ class UFile {
 
   _sign(req, key) {
     let p = [req.method.toUpperCase(), req.get('content-md5') || '', req.get('content-type') || '', req.get('date') || '']
+    
     Object.keys(req.header)
       .sort()
       .forEach((key) => {
@@ -352,14 +357,14 @@ class UFile {
       })
     p.push(`/${this._bucket}${key}`)
     const stringToSign = p.join('\n')
+    console.log(stringToSign);
     return hmacSha1(stringToSign, this._privateKey)
   }
 }
 
 module.exports = UFile
 
-const UFileBucket = require('./bucket')
-UFile.Bucket = UFileBucket
+
 
 function hmacSha1(str, privateKey, digest = 'base64') {
   return crypto.createHmac('sha1', privateKey).update(str).digest(digest)
@@ -372,4 +377,12 @@ function pascalObject(obj) {
       r[pascalCase(key)] = obj[key]
     })
   return r
+}
+
+function getMimeType(file_path) {
+  var ret = mime.getType(file_path);
+  if (!ret) {
+    return "application/octet-stream";
+  }
+  return ret;
 }

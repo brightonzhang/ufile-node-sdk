@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/bangbang93/node-ufile-rest#readme",
   "dependencies": {
+    "mime": "^2.4.4",
     "pascal-case": "^2.0.1",
     "superagent": "^3.6.0"
   },

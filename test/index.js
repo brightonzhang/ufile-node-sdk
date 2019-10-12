@@ -4,38 +4,42 @@
 'use strict';
 const should = require('should');
 const path = require('path')
-const UFile = require('../')
+const UFile = require('../src/index')
+const UFileBucket = require('../src/bucket')
 
 const config = require(path.resolve(process.cwd(), './ufile-config'));
 
 
-const ufileBucket = new UFile.Bucket(config)
+const ufileBucket = new UFileBucket(config)
 
 const ufile = new UFile(config)
 
 describe('UFile SDK Test', function () {
-  it('GetProjectList', async function () {
-    const resp = await ufileBucket.getProjectList({
-      resourceCount: 'Yes',
-      memberCount: 'Yes',
-    })
-    // console.log(resp.body)
-    // console.log(resp.req)
-    resp.body['RetCode'].should.eql(0)
-  })
+
   it('PrefixFileList', async function () {
     try {
-      const resp = await ufile.prefixFileList({
+      const res = await ufile.prefixFileList({
         // prefix: 'smile-blog',
         // limit:1,
         // marker:'about.png'
       })
-      resp.body['DataSet'].should.be.Array()
-      // console.log(resp.body);
-    } catch (e) {
-      console.error(e.response.body)
+      res.body['DataSet'].should.be.Array()
+      // console.log(res.body);
+    } catch (error) {
+      console.error(error.response.body)
       // console.error(e.response.req._headers)
-      throw e
+      throw error
     }
   })
+  // it('PutFile', async function () {
+  //   try {
+  //     const key = 'asdasd';
+  //     const file = './img/about.png';
+  //     const res = await ufile.putFile({ key, file })
+  //     console.log(res);
+  //   } catch (error) {
+  //     console.log(error)
+     
+  //   }
+  // })
 })
