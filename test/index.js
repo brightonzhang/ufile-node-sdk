@@ -3,35 +3,48 @@
  */
 'use strict';
 const should = require('should');
-const path = require('path')
-const UFile = require('../src/index')
-const UFileBucket = require('../src/bucket')
+const path = require('path');
+const UFile = require('../src/index');
+const UFileBucket = require('../src/bucket');
 
 const config = require(path.resolve(process.cwd(), './ufile-config'));
 
 
-const ufileBucket = new UFileBucket(config)
+const ufileBucket = new UFileBucket(config);
 
-const ufile = new UFile(config)
+const ufile = new UFile(config);
 
-describe('UFile SDK Test', function () {
+  describe('UFile SDK Test', function () {
 
-  it('PrefixFileList', async function () {
-    try {
-      const res = await ufile.prefixFileList({
-        // prefix: 'smile-blog',
-        // limit:1,
-        // marker:'about.png'
-      })
-      res.body['DataSet'].should.be.Array()
-      // console.log(res.body);
-    } catch (error) {
-      console.error(error.response.body)
-      // console.error(e.response.req._headers)
-      throw error
-    }
+    it('PrefixFileList', async function () {
+      try {
+        const res = await ufile.prefixFileList({
+          // prefix: 'smile-blog',
+          // limit:1,
+          // marker:'about.png'
+        })
+        res.body['DataSet'].should.be.Array()
+        // console.log(res.body);
+      } catch (error) {
+        console.error(error.response.body)
+        // console.error(e.response.req._headers)
+        throw error
+      }
+    })
+    // it('PutFile', async function () {
+    //   try {
+    //     const key = 'asdasd';
+    //     const file = './img/about.png';
+    //     const res = await ufile.putFile({ key, file })
+    //     console.log(res);
+    //   } catch (error) {
+    //     console.log(error)
+
+    //   }
+    // })
   })
-  // it('PutFile', async function () {
+
+  // (async () => {
   //   try {
   //     const key = 'asdasd';
   //     const file = './img/about.png';
@@ -39,7 +52,6 @@ describe('UFile SDK Test', function () {
   //     console.log(res);
   //   } catch (error) {
   //     console.log(error)
-     
+
   //   }
-  // })
-})
+  // })()

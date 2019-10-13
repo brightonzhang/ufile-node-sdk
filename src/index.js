@@ -51,8 +51,8 @@ class UFile {
    * @param {string} [mimeType='application/octet-stream'] 文件类型
    * @returns {Promise}
    */
-  putFile({ key, file, mimeType = getMimeType(file) }) {
-    // console.log(file);
+  putFile({ key, file, mimeType = getMimeType(file), fileSize = getFileSize(file) }) {
+
     switch (true) {
       case file instanceof Buffer:
         return this._request({
@@ -64,15 +64,39 @@ class UFile {
           }
         })
       case file instanceof Stream.Readable:
+        // if (!key.startsWith('/')) {
+        //   key = '/' + key
+        // }
+        // // console.log(file);
+        // try {
+        //   // const req = request()
+        //   file.pipe(request
+        //     .put(`${this._protocol}://${this._bucket}${this._domain}${key}`)
+        // .set({
+        //   'Content-Type': mimeType,
+        //   'Content-Length': fileSize,
+        // })
+        // .use((req) => {
+        //   req.set('Authorization', `UCloud ${this._publicKey}:${this._sign(req, key)}`)
+        // })
+        // .end()
+        //     )
+        //   file.on('end', function(res){
+        //     console.log(res);
+        //   }) 
+        // } catch (error) {
+        //   console.log(error);
+        // }
+        // return
         const stream = this._request({
           key,
           method: 'put',
           headers: {
-            'content-type': mimeType,
+            'Content-Type': mimeType,
+            'Content-Length': fileSize
           }
         })
-        // console.log(stream);
-        // return ;
+
         return new Promise((resolve) => {
           file.pipe(stream)
           file.on('end', resolve)
@@ -82,6 +106,7 @@ class UFile {
           key,
           file: fs.createReadStream(file),
           mimeType,
+          fileSize
         })
 
       default:
@@ -288,9 +313,15 @@ class UFile {
     }
 
     const req = request(method, url)
+    req.use((req) => {
+      req.set('Authorization', `UCloud ${this._publicKey}:${this._sign(req, key)}`)
+    })
     if (headers) {
       req.set(headers)
     }
+    req.set('User-Agent', 'nodejs-sdk-ver/1.0.3')
+
+
     switch (method.toLowerCase()) {
       case 'post':
       case 'put':
@@ -308,10 +339,9 @@ class UFile {
       default:
         break
     }
-    if (query) req.query(query)
-    req.use((req) => {
-      req.set('authorization', `UCloud ${this._publicKey}:${this._sign(req, key)}`)
-    })
+    if (query) {
+      req.query(query)
+    }
     return req
   }
 
@@ -347,7 +377,7 @@ class UFile {
 
   _sign(req, key) {
     let p = [req.method.toUpperCase(), req.get('content-md5') || '', req.get('content-type') || '', req.get('date') || '']
-    
+
     Object.keys(req.header)
       .sort()
       .forEach((key) => {
@@ -357,7 +387,6 @@ class UFile {
       })
     p.push(`/${this._bucket}${key}`)
     const stringToSign = p.join('\n')
-    console.log(stringToSign);
     return hmacSha1(stringToSign, this._privateKey)
   }
 }
@@ -385,4 +414,9 @@ function getMimeType(file_path) {
     return "application/octet-stream";
   }
   return ret;
+}
+
+function getFileSize(file_path) {
+  var stats = fs.statSync(file_path);
+  return stats.size;
 }

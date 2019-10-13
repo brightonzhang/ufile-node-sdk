@@ -23,11 +23,9 @@
   "dependencies": {
     "mime": "^2.4.4",
     "pascal-case": "^2.0.1",
-    "superagent": "^3.6.0"
+    "superagent": "^5.1.0"
   },
   "devDependencies": {
-    "babel-preset-env": "^1.6.0",
-    "babel-register": "^6.26.0",
     "mocha": "^3.5.3",
     "should": "^13.0.1"
   }
