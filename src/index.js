@@ -2,17 +2,14 @@
  * Created by bangbang93 on 2017/9/13.
  */
 'use strict';
-const superagent = require('superagent')
 const request = require('request');
-const axios = require('axios');
 const crypto = require('crypto')
 const pascalCase = require('pascal-case')
 const Stream = require('stream')
 const fs = require('fs')
 const mime = require('mime');
-const http = require('http');
-const https = require('https');
-
+const _ = require('lodash');
+const ProgressBar = require('progress');
 class UFile {
   /**
    * UFile SDK
@@ -102,8 +99,8 @@ class UFile {
           const down_file = fs.createWriteStream('./download/test.png');
           return new Promise((resolve, reject) => {
             const downloadStream = () => request.get({
-              url: 'http://charbo.hk.ufileos.com/smile-blog/about.png',
-              // url: 'http://charbo-assets.hk.ufileos.com/The-Slow-Dock.mp4',
+              // url: 'http://charbo.hk.ufileos.com/smile-blog/about.png',
+              url: 'http://charbo-assets.hk.ufileos.com/The-Slow-Dock.mp4',
             }, function (error, { statusCode, statusMessage, headers }, body) {
               if (error) {
                 reject(error);
@@ -111,10 +108,26 @@ class UFile {
               }
               const res = { statusCode, statusMessage, headers };
               resolve(res)
-            }).on('response', ({ statusCode, statusMessage }) => {
-              if (statusCode === 200) {
-                console.log('Downloading...');
+            }).on('response', (res) => {
+              const total = parseInt(res.headers['content-length']);
+              if (res.statusCode === 200) {
+                // console.log('Downloading...');
+                var bar = new ProgressBar('  Downloading [:bar] at :speed MB/s :percent :elapseds', {
+                  complete: '=',
+                  incomplete: ' ',
+                  width: 20,
+                  total,
+                  renderThrottle: '100'
+                });
+                res.on('data', function (chunk) {
+                  const speed = ((bar.curr / ((new Date - bar.start) / 1000)) / 1048576).toFixed(1);
+                  bar.tick(chunk.length, { speed });
+                });
+                res.on('end', function () {
+                  console.log('\n');
+                });
               } else {
+                const { statusCode, statusMessage } = response;
                 reject({ statusCode, statusMessage })
               }
             })
@@ -138,10 +151,12 @@ class UFile {
         //async await 写法
         try {
           await downloadFile();
-          const dl_path = await uploadFile();
+          const dl_path = '';
+          // const dl_path = await uploadFile();
           return { code: 1, dl_path };
         } catch (error) {
-          return { code: 0, dl_path: '' };
+
+          return error;
         }
 
       case typeof file === 'string':

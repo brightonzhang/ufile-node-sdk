@@ -15,7 +15,7 @@ const ufileBucket = new UFileBucket(config);
 const ufile = new UFile(config);
 
 describe('UFile SDK Test', function () {
-  this.timeout(5000);
+  this.timeout(20000);
   // it('PrefixFileList', async function () {
   //   try {
   //     const res = await ufile.prefixFileList({
