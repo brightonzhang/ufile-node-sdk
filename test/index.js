@@ -49,7 +49,7 @@ const ufile = new UFile(config);
       const key = 'asdasd';
       const file = './img/about.png';
       const res = await ufile.putFile({ key, file })
-      console.log(res);
+      console.log(`test res: ${res}`);
     } catch (error) {
       console.log(error)
 

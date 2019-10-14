@@ -69,68 +69,81 @@ class UFile {
           }
         })
       case file instanceof Stream.Readable:
-        let success = false;
         return new Promise((resolve, reject) => {
           try {
-            const uploadFile = file;
-            const downloadFile = fs.createWriteStream('./test.dl');
-            const getUploadStream = () => {
-              return request.put({
-                url: 'http://charbo.hk.ufileos.com/smile-blog/about.png',
-                headers: {
-                  Authorization:
-                    'UCloud uHBkkj_l7DR_XaZVsTDjl_aBVWtM75qk6chz2N0q:PoG2CYMsqQj7H60Uc6RgrJliUWE=',
-                  'Content-Type': mimeType,
-                  'Content-Length': fileSize
-                }
-              }, function (error, { statusCode, statusMessage, headers }, body) {
-                if (error) {
-                  // console.log(error);
-                  reject(error);
-                  return;
-                }
-                const res = { statusCode, statusMessage, headers };
-                console.log('uploaded');
-                // console.log(res);
-              }).on('response', (res) => {
-                console.log('uploading');
+            const uploadFile = () => {
+              const up_file = file;
+              return new Promise((resolve, reject) => {
+                const uploadStream = () => request.put({
+                  url: 'http://charbo.hk.ufileos.com/smile-blog/about.png',
+                  headers: {
+                    Authorization:
+                      'UCloud uHBkkj_l7DR_XaZVsTDjl_aBVWtM75qk6chz2N0q:PoG2CYMsqQj7H60Uc6RgrJliUWE=',
+                    'Content-Type': mimeType,
+                    'Content-Length': fileSize
+                  }
+                }, function (error, { statusCode, statusMessage, headers }, body) {
+                  if (error) {
+                    reject(error);
+                    return;
+                  }
+                  const res = { statusCode, statusMessage, headers, body };
+                  resolve(res);
+                }).on('response', ({ statusCode, statusMessage }) => {
+                  if (statusCode === 200) {
+                    console.log('uploading');
+                  } else {
+                    reject({ statusCode, statusMessage })
+                  }
+                })
+
+                setTimeout(() => {
+                  up_file.pipe(uploadStream());
+                }, 1000)
+
               })
-            };
+            }
 
-            const getDownloadStream = () => {
-              return request.get({
-                url: 'http://charbo.hk.ufileos.com/smile-blog/abut.png',
-                // url: 'http://charbo-assets.hk.ufileos.com/The-Slow-Dock.mp4',
-              }, function (error, { statusCode, statusMessage, headers }, body) {
-                if (error) {
-                  console.log(error);
-                  reject(error);
-                  return;
-                }
-                const res = { statusCode, statusMessage, headers };
-                console.log('downloaded');
-                resolve('All done')
-                // console.log(res);
-              }).on('response', (res) => {
-                if (res.statusCode === 200) {
-                  success = true
-                  console.log('downloading...');
-                } else {
-                  return;
-                }
+            const downloadFile = () => {
+              const down_file = fs.createWriteStream('./test.png');
+              return new Promise((resolve, reject) => {
+                const downloadStream = () => request.get({
+                  url: 'http://charbo.hk.ufileos.com/smile-blog/about.png',
+                  // url: 'http://charbo-assets.hk.ufileos.com/The-Slow-Dock.mp4',
+                }, function (error, { statusCode, statusMessage, headers }, body) {
+                  if (error) {
+                    reject(error);
+                    return;
+                  }
+                  const res = { statusCode, statusMessage, headers };
+                  resolve(res)
+                }).on('response', ({ statusCode, statusMessage }) => {
+                  if (statusCode === 200) {
+                    console.log('downloading...');
+                  } else {
+                    reject({ statusCode, statusMessage })
+                  }
+                })
+                setTimeout(() => {
+                  downloadStream().pipe(down_file);
+                }, 1000)
+
+              })
+            }
+            //Promise 写法
+            uploadFile().then((res) => {
+              console.log(res);
+              downloadFile().then((res) => {
+                console.log(res);
+                resolve("All done")
+              }).catch((error) => {
+                // console.log('Download Error:', error);
+                reject(error)
               });
-            };
-            // getUploadStream()
-            // getDownloadStream()
-
-            uploadFile.pipe(getUploadStream()).on('end', () => {
-              success && getDownloadStream().pipe(downloadFile)
+            }).catch((error) => {
+              // console.log("Upload Error:", error);
+              reject(error)
             });
-            // getDownloadStream().on('complete', () => {
-            //   uploadFile.pipe(getUploadStream().on('end',()=>{
-            //     resolve('All done')
-            //   }))
-            // }).pipe(downloadFile);
 
           } catch (error) {
             reject(error);
