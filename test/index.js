@@ -14,44 +14,44 @@ const ufileBucket = new UFileBucket(config);
 
 const ufile = new UFile(config);
 
-  describe('UFile SDK Test', function () {
+  // describe('UFile SDK Test', function () {
 
-    it('PrefixFileList', async function () {
-      try {
-        const res = await ufile.prefixFileList({
-          // prefix: 'smile-blog',
-          // limit:1,
-          // marker:'about.png'
-        })
-        res.body['DataSet'].should.be.Array()
-        // console.log(res.body);
-      } catch (error) {
-        console.error(error.response.body)
-        // console.error(e.response.req._headers)
-        throw error
-      }
-    })
+    // it('PrefixFileList', async function () {
+    //   try {
+    //     const res = await ufile.prefixFileList({
+    //       // prefix: 'smile-blog',
+    //       // limit:1,
+    //       // marker:'about.png'
+    //     })
+    //     res.body['DataSet'].should.be.Array()
+    //     // console.log(res.body);
+    //   } catch (error) {
+    //     console.error(error.response.body)
+    //     // console.error(e.response.req._headers)
+    //     throw error
+    //   }
+    // })
     // it('PutFile', async function () {
     //   try {
     //     const key = 'asdasd';
     //     const file = './img/about.png';
     //     const res = await ufile.putFile({ key, file })
-    //     console.log(res);
+    //     console.log(`test:${res}`);
     //   } catch (error) {
     //     console.log(error)
 
     //   }
     // })
-  })
+  // })
 
-  // (async () => {
-  //   try {
-  //     const key = 'asdasd';
-  //     const file = './img/about.png';
-  //     const res = await ufile.putFile({ key, file })
-  //     console.log(res);
-  //   } catch (error) {
-  //     console.log(error)
+  (async () => {
+    try {
+      const key = 'asdasd';
+      const file = './img/about.png';
+      const res = await ufile.putFile({ key, file })
+      console.log(res);
+    } catch (error) {
+      console.log(error)
 
-  //   }
-  // })()
+    }
+  })()

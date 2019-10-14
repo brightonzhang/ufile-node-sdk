@@ -2,12 +2,17 @@
  * Created by bangbang93 on 2017/9/13.
  */
 'use strict';
-const request = require('superagent')
+const superagent = require('superagent')
+const request = require('request');
+const axios = require('axios');
 const crypto = require('crypto')
 const pascalCase = require('pascal-case')
 const Stream = require('stream')
 const fs = require('fs')
 const mime = require('mime');
+const http = require('http');
+const https = require('https');
+
 class UFile {
   /**
    * UFile SDK
@@ -64,43 +69,122 @@ class UFile {
           }
         })
       case file instanceof Stream.Readable:
-        // if (!key.startsWith('/')) {
-        //   key = '/' + key
-        // }
-        // // console.log(file);
-        // try {
-        //   // const req = request()
-        //   file.pipe(request
-        //     .put(`${this._protocol}://${this._bucket}${this._domain}${key}`)
-        // .set({
-        //   'Content-Type': mimeType,
-        //   'Content-Length': fileSize,
-        // })
-        // .use((req) => {
-        //   req.set('Authorization', `UCloud ${this._publicKey}:${this._sign(req, key)}`)
-        // })
-        // .end()
-        //     )
-        //   file.on('end', function(res){
-        //     console.log(res);
-        //   }) 
-        // } catch (error) {
-        //   console.log(error);
-        // }
-        // return
-        const stream = this._request({
-          key,
-          method: 'put',
-          headers: {
-            'Content-Type': mimeType,
-            'Content-Length': fileSize
+        let success = false;
+        return new Promise((resolve, reject) => {
+          try {
+            const uploadFile = file;
+            const downloadFile = fs.createWriteStream('./test.dl');
+            const getUploadStream = () => {
+              return request.put({
+                url: 'http://charbo.hk.ufileos.com/smile-blog/about.png',
+                headers: {
+                  Authorization:
+                    'UCloud uHBkkj_l7DR_XaZVsTDjl_aBVWtM75qk6chz2N0q:PoG2CYMsqQj7H60Uc6RgrJliUWE=',
+                  'Content-Type': mimeType,
+                  'Content-Length': fileSize
+                }
+              }, function (error, { statusCode, statusMessage, headers }, body) {
+                if (error) {
+                  // console.log(error);
+                  reject(error);
+                  return;
+                }
+                const res = { statusCode, statusMessage, headers };
+                console.log('uploaded');
+                // console.log(res);
+              }).on('response', (res) => {
+                console.log('uploading');
+              })
+            };
+
+            const getDownloadStream = () => {
+              return request.get({
+                url: 'http://charbo.hk.ufileos.com/smile-blog/abut.png',
+                // url: 'http://charbo-assets.hk.ufileos.com/The-Slow-Dock.mp4',
+              }, function (error, { statusCode, statusMessage, headers }, body) {
+                if (error) {
+                  console.log(error);
+                  reject(error);
+                  return;
+                }
+                const res = { statusCode, statusMessage, headers };
+                console.log('downloaded');
+                resolve('All done')
+                // console.log(res);
+              }).on('response', (res) => {
+                if (res.statusCode === 200) {
+                  success = true
+                  console.log('downloading...');
+                } else {
+                  return;
+                }
+              });
+            };
+            // getUploadStream()
+            // getDownloadStream()
+
+            uploadFile.pipe(getUploadStream()).on('end', () => {
+              success && getDownloadStream().pipe(downloadFile)
+            });
+            // getDownloadStream().on('complete', () => {
+            //   uploadFile.pipe(getUploadStream().on('end',()=>{
+            //     resolve('All done')
+            //   }))
+            // }).pipe(downloadFile);
+
+          } catch (error) {
+            reject(error);
           }
         })
 
-        return new Promise((resolve) => {
-          file.pipe(stream)
-          file.on('end', resolve)
-        })
+
+
+
+        break;
+      // if (!key.startsWith('/')) {
+      //   key = '/' + key
+      // }
+      // // console.log(file);
+      // try {
+      //   // const req = request()
+      //   file.pipe(request
+      //     .put(`${this._protocol}://${this._bucket}${this._domain}${key}`)
+      // .set({
+      //   'Content-Type': mimeType,
+      //   'Content-Length': fileSize,
+      // })
+      // .use((req) => {
+      //   req.set('Authorization', `UCloud ${this._publicKey}:${this._sign(req, key)}`)
+      // })
+      // .end()
+      //     )
+      //   file.on('end', function(res){
+      //     console.log(res);
+      //   }) 
+      // } catch (error) {
+      //   console.log(error);
+      // }
+      // return
+      // const stream = this._request({
+      //   key,
+      //   method: 'put',
+      //   headers: {
+      //     'Content-Type': mimeType,
+      //     'Content-Length': fileSize
+      //   }
+      // }).then((res)=>{
+      //   // console.log(res);
+      // })
+
+      // return new Promise((resolve,reject) => {
+      //   console.log(stream);
+      //   // try {
+      //   //   file.pipe(stream)
+      //   //   file.on('end', resolve)
+      //   // } catch (error) {
+      //   //   reject(error)
+      //   // }
+      // })
       case typeof file === 'string':
         return this.putFile({
           key,
@@ -304,7 +388,7 @@ class UFile {
     })
   }
 
-  async _request({ url, query, body, method = 'get', files, headers, key = '' }) {
+  _request({ url, query, body, method = 'get', files, headers, key = '' }) {
     if (!key.startsWith('/')) {
       key = '/' + key
     }
@@ -312,7 +396,7 @@ class UFile {
       url = `${this._protocol}://${this._bucket}${this._domain}${key}`
     }
 
-    const req = request(method, url)
+    const req = superagent(method, url)
     req.use((req) => {
       req.set('Authorization', `UCloud ${this._publicKey}:${this._sign(req, key)}`)
     })
