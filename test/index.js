@@ -37,7 +37,7 @@ describe('UFile SDK Test', function () {
       const file = './img/about.png';
       const res = await ufile.putFile({ key, file })
       res.should.be.Object().and.has.property('code', 1);    
-      console.log(`test:${res}`);
+      console.log('  test result: ',res);
     } catch (error) {
       throwError(error)
     }

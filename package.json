@@ -25,7 +25,8 @@
     "mime": "^2.4.4",
     "pascal-case": "^2.0.1",
     "progress": "^2.0.3",
-    "request": "^2.88.0"
+    "request": "^2.88.0",
+    "superagent": "^5.1.0"
   },
   "devDependencies": {
     "mocha": "^3.5.3",

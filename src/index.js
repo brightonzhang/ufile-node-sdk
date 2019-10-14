@@ -70,19 +70,19 @@ class UFile {
           const up_file = file;
           return new Promise((resolve, reject) => {
             const uploadStream = () => request.put({
-              url: 'http://charbo.hk.ufileos.com/smile-blog/about.png',
+              url: 'https://charbo.hk.ufileos.com/smile-blog/about.png',
               headers: {
                 Authorization:
                   'UCloud uHBkkj_l7DR_XaZVsTDjl_aBVWtM75qk6chz2N0q:PoG2CYMsqQj7H60Uc6RgrJliUWE=',
                 'Content-Type': mimeType,
                 'Content-Length': fileSize
               }
-            }, function (error, { statusCode, statusMessage, headers }, body) {
+            }, function (error, { statusCode, statusMessage, headers, request: { href: url } }, body) {
               if (error) {
                 reject(error);
                 return;
               }
-              const res = { statusCode, statusMessage, headers, body };
+              const res = { statusCode, statusMessage, headers, body, url };
               resolve(res);
             }).on('response', ({ statusCode, statusMessage }) => {
               if (statusCode === 200) {
@@ -99,8 +99,8 @@ class UFile {
           const down_file = fs.createWriteStream('./download/test.png');
           return new Promise((resolve, reject) => {
             const downloadStream = () => request.get({
-              // url: 'http://charbo.hk.ufileos.com/smile-blog/about.png',
-              url: 'http://charbo-assets.hk.ufileos.com/The-Slow-Dock.mp4',
+              // url: 'https://charbo.hk.ufileos.com/smile-blog/about.png',
+              url: 'https://charbo-assets.hk.ufileos.com/The-Slow-Dock.mp4',
             }, function (error, { statusCode, statusMessage, headers }, body) {
               if (error) {
                 reject(error);
@@ -112,7 +112,7 @@ class UFile {
               const total = parseInt(res.headers['content-length']);
               if (res.statusCode === 200) {
                 // console.log('Downloading...');
-                var bar = new ProgressBar('  Downloading [:bar] at :speed MB/s :percent :elapseds', {
+                var bar = new ProgressBar('  Downloading :percent [:bar] at :speed MB/s :elapseds spent', {
                   complete: '=',
                   incomplete: ' ',
                   width: 20,
@@ -122,9 +122,9 @@ class UFile {
                 res.on('data', function (chunk) {
                   const speed = ((bar.curr / ((new Date - bar.start) / 1000)) / 1048576).toFixed(1);
                   bar.tick(chunk.length, { speed });
-                });
-                res.on('end', function () {
-                  console.log('\n');
+                  if (bar.complete) {
+                    console.log('\n');
+                  }
                 });
               } else {
                 const { statusCode, statusMessage } = response;
@@ -148,16 +148,12 @@ class UFile {
         //   // console.log("Upload Error:", error);
         //   reject(error)
         // });
-        //async await 写法
-        try {
-          await downloadFile();
-          const dl_path = '';
-          // const dl_path = await uploadFile();
-          return { code: 1, dl_path };
-        } catch (error) {
+        //async await 写法(无需try/catch，遇到reject会自动抛出error)
 
-          return error;
-        }
+        // await downloadFile();
+        const { url } = await uploadFile();
+        return { code: 1, url };
+
 
       case typeof file === 'string':
         return this.putFile({
