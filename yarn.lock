@@ -639,7 +639,7 @@ should-util@^1.0.0:
   resolved "https://registry.npm.taobao.org/should-util/download/should-util-1.0.1.tgz#fb0d71338f532a3a149213639e2d32cbea8bcb28"
   integrity sha1-+w1xM49TKjoUkhNjni0yy+qLyyg=
 
-should@^13.0.1:
+should@^13.2.3:
   version "13.2.3"
   resolved "https://registry.npm.taobao.org/should/download/should-13.2.3.tgz#96d8e5acf3e97b49d89b51feaa5ae8d07ef58f10"
   integrity sha1-ltjlrPPpe0nYm1H+qlro0H71jxA=

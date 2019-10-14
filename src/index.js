@@ -56,7 +56,7 @@ class UFile {
    * @param {string} [mimeType='application/octet-stream'] 文件类型
    * @returns {Promise}
    */
-  putFile({ key, file, mimeType = getMimeType(file), fileSize = getFileSize(file) }) {
+  async putFile({ key, file, mimeType = getMimeType(file), fileSize = getFileSize(file) }) {
 
     switch (true) {
       case file instanceof Buffer:
@@ -69,135 +69,81 @@ class UFile {
           }
         })
       case file instanceof Stream.Readable:
-        return new Promise((resolve, reject) => {
-          try {
-            const uploadFile = () => {
-              const up_file = file;
-              return new Promise((resolve, reject) => {
-                const uploadStream = () => request.put({
-                  url: 'http://charbo.hk.ufileos.com/smile-blog/about.png',
-                  headers: {
-                    Authorization:
-                      'UCloud uHBkkj_l7DR_XaZVsTDjl_aBVWtM75qk6chz2N0q:PoG2CYMsqQj7H60Uc6RgrJliUWE=',
-                    'Content-Type': mimeType,
-                    'Content-Length': fileSize
-                  }
-                }, function (error, { statusCode, statusMessage, headers }, body) {
-                  if (error) {
-                    reject(error);
-                    return;
-                  }
-                  const res = { statusCode, statusMessage, headers, body };
-                  resolve(res);
-                }).on('response', ({ statusCode, statusMessage }) => {
-                  if (statusCode === 200) {
-                    console.log('uploading');
-                  } else {
-                    reject({ statusCode, statusMessage })
-                  }
-                })
+        const uploadFile = () => {
+          const up_file = file;
+          return new Promise((resolve, reject) => {
+            const uploadStream = () => request.put({
+              url: 'http://charbo.hk.ufileos.com/smile-blog/about.png',
+              headers: {
+                Authorization:
+                  'UCloud uHBkkj_l7DR_XaZVsTDjl_aBVWtM75qk6chz2N0q:PoG2CYMsqQj7H60Uc6RgrJliUWE=',
+                'Content-Type': mimeType,
+                'Content-Length': fileSize
+              }
+            }, function (error, { statusCode, statusMessage, headers }, body) {
+              if (error) {
+                reject(error);
+                return;
+              }
+              const res = { statusCode, statusMessage, headers, body };
+              resolve(res);
+            }).on('response', ({ statusCode, statusMessage }) => {
+              if (statusCode === 200) {
+                console.log('Uploading...');
+              } else {
+                reject({ statusCode, statusMessage })
+              }
+            })
+            up_file.pipe(uploadStream());
+          })
+        }
 
-                setTimeout(() => {
-                  up_file.pipe(uploadStream());
-                }, 1000)
+        const downloadFile = () => {
+          const down_file = fs.createWriteStream('./download/test.png');
+          return new Promise((resolve, reject) => {
+            const downloadStream = () => request.get({
+              url: 'http://charbo.hk.ufileos.com/smile-blog/about.png',
+              // url: 'http://charbo-assets.hk.ufileos.com/The-Slow-Dock.mp4',
+            }, function (error, { statusCode, statusMessage, headers }, body) {
+              if (error) {
+                reject(error);
+                return;
+              }
+              const res = { statusCode, statusMessage, headers };
+              resolve(res)
+            }).on('response', ({ statusCode, statusMessage }) => {
+              if (statusCode === 200) {
+                console.log('Downloading...');
+              } else {
+                reject({ statusCode, statusMessage })
+              }
+            })
+            downloadStream().pipe(down_file);
+          })
+        }
+        //Promise 写法（需要 return 一个Promise）
+        // uploadFile().then((res) => {
+        //   console.log(res);
+        //   downloadFile().then((res) => {
+        //     console.log(res);
+        //     resolve("All done")
+        //   }).catch((error) => {
+        //     // console.log('Download Error:', error);
+        //     reject(error)
+        //   });
+        // }).catch((error) => {
+        //   // console.log("Upload Error:", error);
+        //   reject(error)
+        // });
+        //async await 写法
+        try {
+          await downloadFile();
+          const dl_path = await uploadFile();
+          return { code: 1, dl_path };
+        } catch (error) {
+          return { code: 0, dl_path: '' };
+        }
 
-              })
-            }
-
-            const downloadFile = () => {
-              const down_file = fs.createWriteStream('./test.png');
-              return new Promise((resolve, reject) => {
-                const downloadStream = () => request.get({
-                  url: 'http://charbo.hk.ufileos.com/smile-blog/about.png',
-                  // url: 'http://charbo-assets.hk.ufileos.com/The-Slow-Dock.mp4',
-                }, function (error, { statusCode, statusMessage, headers }, body) {
-                  if (error) {
-                    reject(error);
-                    return;
-                  }
-                  const res = { statusCode, statusMessage, headers };
-                  resolve(res)
-                }).on('response', ({ statusCode, statusMessage }) => {
-                  if (statusCode === 200) {
-                    console.log('downloading...');
-                  } else {
-                    reject({ statusCode, statusMessage })
-                  }
-                })
-                setTimeout(() => {
-                  downloadStream().pipe(down_file);
-                }, 1000)
-
-              })
-            }
-            //Promise 写法
-            uploadFile().then((res) => {
-              console.log(res);
-              downloadFile().then((res) => {
-                console.log(res);
-                resolve("All done")
-              }).catch((error) => {
-                // console.log('Download Error:', error);
-                reject(error)
-              });
-            }).catch((error) => {
-              // console.log("Upload Error:", error);
-              reject(error)
-            });
-
-          } catch (error) {
-            reject(error);
-          }
-        })
-
-
-
-
-        break;
-      // if (!key.startsWith('/')) {
-      //   key = '/' + key
-      // }
-      // // console.log(file);
-      // try {
-      //   // const req = request()
-      //   file.pipe(request
-      //     .put(`${this._protocol}://${this._bucket}${this._domain}${key}`)
-      // .set({
-      //   'Content-Type': mimeType,
-      //   'Content-Length': fileSize,
-      // })
-      // .use((req) => {
-      //   req.set('Authorization', `UCloud ${this._publicKey}:${this._sign(req, key)}`)
-      // })
-      // .end()
-      //     )
-      //   file.on('end', function(res){
-      //     console.log(res);
-      //   }) 
-      // } catch (error) {
-      //   console.log(error);
-      // }
-      // return
-      // const stream = this._request({
-      //   key,
-      //   method: 'put',
-      //   headers: {
-      //     'Content-Type': mimeType,
-      //     'Content-Length': fileSize
-      //   }
-      // }).then((res)=>{
-      //   // console.log(res);
-      // })
-
-      // return new Promise((resolve,reject) => {
-      //   console.log(stream);
-      //   // try {
-      //   //   file.pipe(stream)
-      //   //   file.on('end', resolve)
-      //   // } catch (error) {
-      //   //   reject(error)
-      //   // }
-      // })
       case typeof file === 'string':
         return this.putFile({
           key,
