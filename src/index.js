@@ -11,6 +11,9 @@ const Stream = require('stream')
 const mime = require('mime');
 const _ = require('lodash');
 const ProgressBar = require('progress');
+const config = require(path.resolve(process.cwd(), './ufile-config'));
+
+
 class UFile {
   /**
    * UFile SDK
@@ -20,13 +23,19 @@ class UFile {
    * @param {string} domain 存储空间域名
    * @param {boolean} protocol 网络协议头
    */
-  constructor({ publicKey, privateKey, bucket, domain, protocol }) {
-    this.publicKey = publicKey;
-    this.privateKey = privateKey;
-    this.bucket = bucket;
-    this.domain = domain;
-    this.protocol = protocol;
+  constructor({ publicKey, privateKey, bucket, domain, protocol } = config) {
+    this.publicKey = publicKey || config.publicKey;
+    this.privateKey = privateKey || config.privateKey;
+    this.bucket = bucket || config.bucket;
+    this.domain = domain || config.domain;
+    this.protocol = protocol || config.protocol;
+    this.resoureUrl = this._getResourcUrl();
   }
+
+  _getResourcUrl({ bucket, domain, protocol } = this) {
+    return `${protocol || this.protocol}://${bucket || this.bucket}${domain || this.domain}`;
+  }
+
   _getKey(file_path, file_prefix = '', filename, unique) {
     file_path = file_path.replace(/\\/g, "/");
     file_prefix = !file_prefix || file_prefix.endsWith('/') ? file_prefix : file_prefix + '/';
@@ -66,34 +75,60 @@ class UFile {
    * @param {string} [mimeType='application/octet-stream'] 文件类型
    * @returns {Promise}
    */
-  async putFile({ key, file_path, file_prefix, filename, unique = false }) {
+  putFile({ key, file_path, file_prefix, filename, unique = false }) {
     key = key || this._getKey(file_path, file_prefix, filename, unique);
+    const headers = {
+      'Content-Type': getMimeType(file_path),
+      'Content-Length': getFileSize(file_path)
+    };
     const up_file = fs.createReadStream(file_path);
     return new Promise((resolve, reject) => {
       const uploadStream = () => request.put({
-        url: 'https://charbo.hk.ufileos.com/smile-blog/about.png',
+        url: `${this.resoureUrl}/${key}`,
         headers: {
-          Authorization:
-            'UCloud uHBkkj_l7DR_XaZVsTDjl_aBVWtM75qk6chz2N0q:PoG2CYMsqQj7H60Uc6RgrJliUWE=',
-          'Content-Type': getMimeType(file_path),
-          'Content-Length': getFileSize(file_path)
+          Authorization: `UCloud ${this.publicKey}:${this.sign({ method: "PUT", headers, key })}`,
+          ...headers
         }
-      }, function (error, { request: { href: url } }, body) {
-        if (error) {
-          reject(error);
+      }, function (error, { request: { href: url } = {}, statusCode, statusMessage } = {}, body) {
+        if (error || statusCode !== 200) {
+          reject({ statusCode, statusMessage, msg: error || body })
           return;
         }
         const res = { code: 1, url };
         resolve(res);
-      }).on('response', ({ statusCode, statusMessage }) => {
+      }).on('response', ({ statusCode }) => {
         if (statusCode === 200) {
           console.log('Uploading...');
-        } else {
-          reject({ statusCode, statusMessage })
         }
       })
       up_file.pipe(uploadStream());
     })
+  }
+
+  /**
+    * 文件转移
+    * @param {string}  
+    */
+  async transferFile({ keyArr = [], originUrl, target_file_prefix }) {
+    let promises = [];
+
+
+    keyArr.forEach((key) => {
+      const promise = new Promise(async (resolve, reject) => {
+        try {
+          const { path: file_path } = await this.getFile({ resoureUrl: originUrl, key });
+          const { url: resUrl } = await this.putFile({ file_path, file_prefix: target_file_prefix });
+          resolve(resUrl);
+          unlinkFile(file_path);
+        } catch (error) {
+          console.log(error);
+        }
+      })
+      promises.push(promise);
+    })
+
+
+    return Promise.all(promises)
   }
 
   /**
@@ -121,7 +156,7 @@ class UFile {
    * @param {string} [ifModifiedSince] 只返回从某时修改过的文件，否则返回304(not modified)
    * @returns {Promise}
    */
-  getFile({ key, file_save_dir, file_save_name, containPrefix = false }) {
+  getFile({ resoureUrl = this.resoureUrl, key, file_save_dir = './download', file_save_name, containPrefix = false }) {
     if (!file_save_name) {
       if (containPrefix) {
         file_save_name = file_save_name || key.replace('/', '_');
@@ -133,13 +168,12 @@ class UFile {
     const file_save_path = path.resolve(file_save_dir, file_save_name);
     return new Promise((resolve, reject) => {
       const downloadStream = () => request.get({
-        url: `${this.protocol}://${this.bucket}${this.domain}/${key}`,
-      }, function (error, { statusCode, statusMessage, headers }, body) {
+        url: `${resoureUrl}/${key}`,
+      }, function (error, res, body) {
         if (error) {
           reject(error);
           return;
         }
-        // const res = { statusCode, statusMessage, headers };
         resolve({ code: 1, path: file_save_path })
       }).on('response', (res) => {
         const total = parseInt(res.headers['content-length']);
@@ -162,9 +196,7 @@ class UFile {
         } else {
           const { statusCode, statusMessage } = res;
           reject({ statusCode, statusMessage })
-          fs.unlink(file_save_path, () => {
-            console.log('Delete temp file success');
-          });
+          unlinkFile(file_save_path)
         }
       })
       downloadStream().pipe(fs.createWriteStream(file_save_path));
@@ -392,7 +424,7 @@ class UFile {
     return hmacSha1(stringToSign, this.privateKey)
 
     function getHeader(key) {
-      let r = headers[key] || header[key.toLowerCase()]
+      let r = headers[key] || headers[key.toLowerCase()]
       if (r) return r
       const keys = Object.keys(headers)
       for (const k of keys) {
@@ -449,4 +481,15 @@ function getMimeType(file_path) {
 function getFileSize(file_path) {
   var stats = fs.statSync(file_path);
   return stats.size;
+}
+
+function unlinkFile(file) {
+  if (typeof (file) !== 'string' && !Array.isArray(file)) {
+    return;
+  }
+  [file].forEach((item) => {
+    fs.unlink(item, () => {
+      // console.log(item);
+    })
+  })
 }

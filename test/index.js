@@ -15,7 +15,7 @@ const ufileBucket = new UFileBucket(config);
 const ufile = new UFile(config);
 
 describe('UFile SDK Test', function () {
-  this.timeout(20000);
+  this.timeout(5000);
   // it('PrefixFileList', async function () {
   //   try {
   //     const res = await ufile.prefixFileList({
@@ -45,26 +45,31 @@ describe('UFile SDK Test', function () {
   // })
   // it('GetFile', async function () {
   //   try {
-  //     const key = 'smile-blog/Sophia.JPG';
+  //     const key = 'smile-blog/Sophi.JPG';
   //     const file_save_dir = './download';
-  //     const res = await ufile.getFile({ key, file_save_dir });
+  //     const res = await ufile.getFile({ key});
   //     res.should.be.Object().and.has.properties(['code', 'path']);
   //     console.log(res);
   //   } catch (error) {
   //     throwError(error)
   //   }
   // })
-  // it('TransferFile', async function () {
-  //   try {
-  //     const originUrl = 'https://charbo.me/images/blogImg/';
-  //     const file_prefix = 'smile-blog';
-  //     const res = await ufile.transferFile({ originUrl, file_prefix });
-  //     res.should.be.Array().and.match(/^http/);
-  //     console.log(res);
-  //   } catch (error) {
-  //     throwError(error)
-  //   }
-  // })
+  it('TransferFile', async function () {
+    try {
+      const originUrl = 'https://charbo.me/images/blogImg';
+      const target_file_prefix = 'smile-blog';
+      const bucket = 'charbo-assets';
+      const keyArr = Array.from({ length: 3 }, (value, index) => {
+        return `ckxt${index + 1}.jpg`
+      });
+      const res = await new UFile({ bucket }).transferFile({ keyArr, originUrl, target_file_prefix });
+      res.should.be.Array().and.match(/^http/);
+      console.log(res);
+    } catch (error) {
+      throwError(error)
+    }
+  })
+
 })
 
 // (async () => {
