@@ -18,7 +18,7 @@ describe('UFile SDK Test', function () {
   this.timeout(5000);
   it('PrefixFileList', async function () {
     try {
-      const res = await ufile.prefixFileList({
+      const res = await ufile.getPrefixFileList({
         // prefix: 'smile-blog',
         // limit:1,
         // marker:'about.jpg'
@@ -30,28 +30,28 @@ describe('UFile SDK Test', function () {
     }
   })
 
-  // it('PutFile', async function () {
-  //   try {
-  //     const file_prefix = 'smile-blog';
-  //     const file_path = './img/about.jpg';
-  //     const res = await ufile.putFile({ file_path, file_prefix });
-  //     res.should.be.Object().and.has.properties(['code', 'url']);
-  //     console.log(res);
-  //   } catch (error) {
-  //     throwError(error)
-  //   }
-  // })
-  // it('GetFile', async function () {
-  //   try {
-  //     const key = 'smile-blog/Sophia.JPG';
-  //     // const file_save_dir = './download';
-  //     const res = await ufile.getFile({ key});
-  //     res.should.be.Object().and.has.properties(['code', 'path']);
-  //     console.log(res);
-  //   } catch (error) {
-  //     throwError(error)
-  //   }
-  // })
+  it('PutFile', async function () {
+    try {
+      const file_prefix = 'test';
+      const file_path = './img/about.jpg';
+      const res = await ufile.putFile({ file_path, file_prefix });
+      res.should.be.Object().and.has.properties(['code', 'url']);
+      console.log(res);
+    } catch (error) {
+      throwError(error)
+    }
+  })
+  it('GetFile', async function () {
+    try {
+      const key = 'test/about.jpg';
+      // const file_save_dir = './download';
+      const res = await ufile.getFile({ key});
+      res.should.be.Object().and.has.properties(['code', 'path']);
+      console.log(res);
+    } catch (error) {
+      throwError(error)
+    }
+  })
   // it('TransferFile', async function () {
   //   this.timeout(50000);
   //   try {
