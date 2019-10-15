@@ -26,6 +26,7 @@
     "pascal-case": "^2.0.1",
     "progress": "^2.0.3",
     "request": "^2.88.0",
+    "shortid": "^2.2.15",
     "superagent": "^5.1.0"
   },
   "devDependencies": {

@@ -15,13 +15,13 @@ const ufileBucket = new UFileBucket(config);
 const ufile = new UFile(config);
 
 describe('UFile SDK Test', function () {
-  this.timeout(5000);
+  this.timeout(5000); 
   // it('PrefixFileList', async function () {
   //   try {
   //     const res = await ufile.prefixFileList({
   //       // prefix: 'smile-blog',
   //       // limit:1,
-  //       // marker:'about.png'
+  //       // marker:'about.jpg'
   //     })
   //     res.body['DataSet'].should.be.Array()
   //     // console.log(res.body);
@@ -35,7 +35,7 @@ describe('UFile SDK Test', function () {
   // it('PutFile', async function () {
   //   try {
   //     const file_prefix = 'smile-blog';
-  //     const file_path = './img/about.png';
+  //     const file_path = './img/about.jpg';
   //     const res = await ufile.putFile({ file_path, file_prefix });
   //     res.should.be.Object().and.has.properties(['code', 'url']);
   //     console.log(res);
@@ -45,8 +45,8 @@ describe('UFile SDK Test', function () {
   // })
   // it('GetFile', async function () {
   //   try {
-  //     const key = 'smile-blog/Sophi.JPG';
-  //     const file_save_dir = './download';
+  //     const key = 'smile-blog/Sophia.JPG';
+  //     // const file_save_dir = './download';
   //     const res = await ufile.getFile({ key});
   //     res.should.be.Object().and.has.properties(['code', 'path']);
   //     console.log(res);
@@ -55,14 +55,21 @@ describe('UFile SDK Test', function () {
   //   }
   // })
   it('TransferFile', async function () {
+    this.timeout(50000);
+
     try {
-      const originUrl = 'https://charbo.me/images/blogImg';
-      const target_file_prefix = 'smile-blog';
       const bucket = 'charbo-assets';
-      const keyArr = Array.from({ length: 3 }, (value, index) => {
-        return `ckxt${index + 1}.jpg`
-      });
-      const res = await new UFile({ bucket }).transferFile({ keyArr, originUrl, target_file_prefix });
+      const file_prefix='smile-blog';
+      const urlArr = [
+        {
+        url:'https://resource.shirmy.me/blog/covers/dark-line.jpg',
+        file_prefix
+      },{
+        url:'https://resource.shirmy.me/blog/covers/category/coding-cover.jpg',
+        file_prefix
+      },
+    ]
+      const res = await new UFile({ bucket }).transferFile(urlArr);
       res.should.be.Array().and.match(/^http/);
       console.log(res);
     } catch (error) {
@@ -75,7 +82,7 @@ describe('UFile SDK Test', function () {
 // (async () => {
 //   try {
 //     const key = 'asdasd';
-//     const file = './img/about.png';
+//     const file = './img/about.jpg';
 //     const res = await ufile.putFile({ key, file })
 //     console.log(`test res: ${res}`);
 //   } catch (error) {

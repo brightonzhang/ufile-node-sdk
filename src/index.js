@@ -8,6 +8,7 @@ const request = require('request');
 const crypto = require('crypto')
 const pascalCase = require('pascal-case')
 const Stream = require('stream')
+const shortid = require('shortid');
 const mime = require('mime');
 const _ = require('lodash');
 const ProgressBar = require('progress');
@@ -29,10 +30,10 @@ class UFile {
     this.bucket = bucket || config.bucket;
     this.domain = domain || config.domain;
     this.protocol = protocol || config.protocol;
-    this.resoureUrl = this._getResourcUrl();
+    this.resoureUrl = this._getResourceUrl();
   }
 
-  _getResourcUrl({ bucket, domain, protocol } = this) {
+  _getResourceUrl({ bucket, domain, protocol } = this) {
     return `${protocol || this.protocol}://${bucket || this.bucket}${domain || this.domain}`;
   }
 
@@ -98,7 +99,7 @@ class UFile {
         resolve(res);
       }).on('response', ({ statusCode }) => {
         if (statusCode === 200) {
-          console.log('Uploading...');
+          console.log('  Uploading...');
         }
       })
       up_file.pipe(uploadStream());
@@ -109,22 +110,28 @@ class UFile {
     * 文件转移
     * @param {string}  
     */
-  async transferFile({ keyArr = [], originUrl, target_file_prefix }) {
+  transferFile(urlArr = []) {
     let promises = [];
-
-
-    keyArr.forEach((key) => {
+    urlArr.every((item) => {
+      if (typeof (item) === 'string') {
+        item = { url: item }
+      } else if (Object.prototype.toString.call(item) !== '[object Object]') {
+        promises.push(Promise.reject('Invalid type'))
+        return false;
+      }
+      // const { file_prefix, filename, unique, key } = item;
       const promise = new Promise(async (resolve, reject) => {
         try {
-          const { path: file_path } = await this.getFile({ resoureUrl: originUrl, key });
-          const { url: resUrl } = await this.putFile({ file_path, file_prefix: target_file_prefix });
+          const { path: file_path } = await this.getFile({ url: item.url });
+          const { url: resUrl } = await this.putFile({ file_path, ...item });
           resolve(resUrl);
           unlinkFile(file_path);
         } catch (error) {
-          console.log(error);
+          reject(error);
         }
       })
       promises.push(promise);
+      return true;
     })
 
 
@@ -156,19 +163,25 @@ class UFile {
    * @param {string} [ifModifiedSince] 只返回从某时修改过的文件，否则返回304(not modified)
    * @returns {Promise}
    */
-  getFile({ resoureUrl = this.resoureUrl, key, file_save_dir = './download', file_save_name, containPrefix = false }) {
+  getFile({ url, key, file_save_dir = './download', file_save_name, containPrefix = false }) {
+    if (!key && !url) {
+      return Promise.reject('Define url or key!')
+
+    } else {
+      url = url || `${this.resoureUrl}/${key}`
+    }
     if (!file_save_name) {
-      if (containPrefix) {
+      if (containPrefix && key) {
         file_save_name = file_save_name || key.replace('/', '_');
       } else {
-        file_save_name = file_save_name || key.substr(key.lastIndexOf('/') !== -1 ? key.lastIndexOf('/') + 1 : 0);
+        file_save_name = file_save_name || url.substr(url.lastIndexOf('/') !== -1 ? url.lastIndexOf('/') + 1 : 0);
       }
     }
     file_save_name = file_save_name.indexOf('.') !== -1 ? file_save_name : file_save_name + '.dl';
     const file_save_path = path.resolve(file_save_dir, file_save_name);
     return new Promise((resolve, reject) => {
       const downloadStream = () => request.get({
-        url: `${resoureUrl}/${key}`,
+        url: url,
       }, function (error, res, body) {
         if (error) {
           reject(error);
@@ -484,10 +497,12 @@ function getFileSize(file_path) {
 }
 
 function unlinkFile(file) {
-  if (typeof (file) !== 'string' && !Array.isArray(file)) {
-    return;
+  if (typeof (file) === 'string') {
+    file = [file]
+  } else if (!Array.isArray(file)) {
+    return
   }
-  [file].forEach((item) => {
+  file.forEach((item) => {
     fs.unlink(item, () => {
       // console.log(item);
     })
