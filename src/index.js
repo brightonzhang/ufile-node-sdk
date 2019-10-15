@@ -2,11 +2,12 @@
  * Created by bangbang93 on 2017/9/13.
  */
 'use strict';
+const path = require('path');
+const fs = require('fs');
 const request = require('request');
 const crypto = require('crypto')
 const pascalCase = require('pascal-case')
 const Stream = require('stream')
-const fs = require('fs')
 const mime = require('mime');
 const _ = require('lodash');
 const ProgressBar = require('progress');
@@ -20,13 +21,25 @@ class UFile {
    * @param {boolean} protocol 网络协议头
    */
   constructor({ publicKey, privateKey, bucket, domain, protocol }) {
-    this._publicKey = publicKey;
-    this._privateKey = privateKey;
-    this._bucket = bucket;
-    this._domain = domain;
-    this._protocol = protocol;
+    this.publicKey = publicKey;
+    this.privateKey = privateKey;
+    this.bucket = bucket;
+    this.domain = domain;
+    this.protocol = protocol;
   }
-
+  _getKey(file_path, file_prefix = '', filename, unique) {
+    file_path = file_path.replace(/\\/g, "/");
+    file_prefix = !file_prefix || file_prefix.endsWith('/') ? file_prefix : file_prefix + '/';
+    filename = filename ? `${filename}${filename.indexOf('.') !== -1 ? '' : file_path.substr(file_path.lastIndexOf('.'))}`
+      : file_path.substr(file_path.lastIndexOf('/') + 1);
+    let key = file_prefix + filename;
+    if (unique) {
+      const id = (typeof (unique) === 'string' || typeof (unique) === 'number') ? unique : shortid.generate();
+      const keyArr = key.split('.');
+      key = `${keyArr[0]}_${id}.${keyArr[keyArr.length - 1]}`;
+    }
+    return key;
+  }
   /**
    * 前缀列表查询
    * @param {string} [prefix=''] 前缀，utf-8编码，默认为空字符串
@@ -36,7 +49,7 @@ class UFile {
    */
   prefixFileList({ prefix, marker, limit }) {
     return this._request({
-      url: `${this._protocol}://${this._bucket}${this._domain}`,
+      url: `${this.protocol}://${this.bucket}${this.domain}`,
       query: {
         list: '',
         prefix,
@@ -53,119 +66,34 @@ class UFile {
    * @param {string} [mimeType='application/octet-stream'] 文件类型
    * @returns {Promise}
    */
-  async putFile({ key, file, mimeType = getMimeType(file), fileSize = getFileSize(file) }) {
-
-    switch (true) {
-      case file instanceof Buffer:
-        return this._request({
-          key,
-          method: 'put',
-          body: file,
-          headers: {
-            'content-type': mimeType
-          }
-        })
-      case file instanceof Stream.Readable:
-        const uploadFile = () => {
-          const up_file = file;
-          return new Promise((resolve, reject) => {
-            const uploadStream = () => request.put({
-              url: 'https://charbo.hk.ufileos.com/smile-blog/about.png',
-              headers: {
-                Authorization:
-                  'UCloud uHBkkj_l7DR_XaZVsTDjl_aBVWtM75qk6chz2N0q:PoG2CYMsqQj7H60Uc6RgrJliUWE=',
-                'Content-Type': mimeType,
-                'Content-Length': fileSize
-              }
-            }, function (error, { statusCode, statusMessage, headers, request: { href: url } }, body) {
-              if (error) {
-                reject(error);
-                return;
-              }
-              const res = { statusCode, statusMessage, headers, body, url };
-              resolve(res);
-            }).on('response', ({ statusCode, statusMessage }) => {
-              if (statusCode === 200) {
-                console.log('Uploading...');
-              } else {
-                reject({ statusCode, statusMessage })
-              }
-            })
-            up_file.pipe(uploadStream());
-          })
+  async putFile({ key, file_path, file_prefix, filename, unique = false }) {
+    key = key || this._getKey(file_path, file_prefix, filename, unique);
+    const up_file = fs.createReadStream(file_path);
+    return new Promise((resolve, reject) => {
+      const uploadStream = () => request.put({
+        url: 'https://charbo.hk.ufileos.com/smile-blog/about.png',
+        headers: {
+          Authorization:
+            'UCloud uHBkkj_l7DR_XaZVsTDjl_aBVWtM75qk6chz2N0q:PoG2CYMsqQj7H60Uc6RgrJliUWE=',
+          'Content-Type': getMimeType(file_path),
+          'Content-Length': getFileSize(file_path)
         }
-
-        const downloadFile = () => {
-          const down_file = fs.createWriteStream('./download/test.png');
-          return new Promise((resolve, reject) => {
-            const downloadStream = () => request.get({
-              // url: 'https://charbo.hk.ufileos.com/smile-blog/about.png',
-              url: 'https://charbo-assets.hk.ufileos.com/The-Slow-Dock.mp4',
-            }, function (error, { statusCode, statusMessage, headers }, body) {
-              if (error) {
-                reject(error);
-                return;
-              }
-              const res = { statusCode, statusMessage, headers };
-              resolve(res)
-            }).on('response', (res) => {
-              const total = parseInt(res.headers['content-length']);
-              if (res.statusCode === 200) {
-                // console.log('Downloading...');
-                var bar = new ProgressBar('  Downloading :percent [:bar] at :speed MB/s :elapseds spent', {
-                  complete: '=',
-                  incomplete: ' ',
-                  width: 20,
-                  total,
-                  renderThrottle: '100'
-                });
-                res.on('data', function (chunk) {
-                  const speed = ((bar.curr / ((new Date - bar.start) / 1000)) / 1048576).toFixed(1);
-                  bar.tick(chunk.length, { speed });
-                  if (bar.complete) {
-                    console.log('\n');
-                  }
-                });
-              } else {
-                const { statusCode, statusMessage } = response;
-                reject({ statusCode, statusMessage })
-              }
-            })
-            downloadStream().pipe(down_file);
-          })
+      }, function (error, { request: { href: url } }, body) {
+        if (error) {
+          reject(error);
+          return;
         }
-        //Promise 写法（需要 return 一个Promise）
-        // uploadFile().then((res) => {
-        //   console.log(res);
-        //   downloadFile().then((res) => {
-        //     console.log(res);
-        //     resolve("All done")
-        //   }).catch((error) => {
-        //     // console.log('Download Error:', error);
-        //     reject(error)
-        //   });
-        // }).catch((error) => {
-        //   // console.log("Upload Error:", error);
-        //   reject(error)
-        // });
-        //async await 写法(无需try/catch，遇到reject会自动抛出error)
-
-        // await downloadFile();
-        const { url } = await uploadFile();
-        return { code: 1, url };
-
-
-      case typeof file === 'string':
-        return this.putFile({
-          key,
-          file: fs.createReadStream(file),
-          mimeType,
-          fileSize
-        })
-
-      default:
-        throw new Error('cannot resolve file')
-    }
+        const res = { code: 1, url };
+        resolve(res);
+      }).on('response', ({ statusCode, statusMessage }) => {
+        if (statusCode === 200) {
+          console.log('Uploading...');
+        } else {
+          reject({ statusCode, statusMessage })
+        }
+      })
+      up_file.pipe(uploadStream());
+    })
   }
 
   /**
@@ -177,7 +105,7 @@ class UFile {
    */
   uploadHit({ hash, fileName, fileSize }) {
     return this._request({
-      url: `${this._protocol}://${this._bucket}${this._domain}/uploadhit`,
+      url: `${this.protocol}://${this.bucket}${this.domain}/uploadhit`,
       query: {
         Hash: hash,
         FileName: fileName,
@@ -193,14 +121,62 @@ class UFile {
    * @param {string} [ifModifiedSince] 只返回从某时修改过的文件，否则返回304(not modified)
    * @returns {Promise}
    */
-  getFile({ key, range, ifModifiedSince }) {
-    return this._request({
-      key,
-      headers: {
-        range,
-        'if-modified-since': ifModifiedSince
+  getFile({ key, file_save_dir, file_save_name, containPrefix = false }) {
+    if (!file_save_name) {
+      if (containPrefix) {
+        file_save_name = file_save_name || key.replace('/', '_');
+      } else {
+        file_save_name = file_save_name || key.substr(key.lastIndexOf('/') !== -1 ? key.lastIndexOf('/') + 1 : 0);
       }
+    }
+    file_save_name = file_save_name.indexOf('.') !== -1 ? file_save_name : file_save_name + '.dl';
+    const file_save_path = path.resolve(file_save_dir, file_save_name);
+    return new Promise((resolve, reject) => {
+      const downloadStream = () => request.get({
+        url: `${this.protocol}://${this.bucket}${this.domain}/${key}`,
+      }, function (error, { statusCode, statusMessage, headers }, body) {
+        if (error) {
+          reject(error);
+          return;
+        }
+        // const res = { statusCode, statusMessage, headers };
+        resolve({ code: 1, path: file_save_path })
+      }).on('response', (res) => {
+        const total = parseInt(res.headers['content-length']);
+        if (res.statusCode === 200) {
+          // console.log('Downloading...');
+          var bar = new ProgressBar('  Downloading :percent [:bar] at :speed MB/s :elapseds spent', {
+            complete: '=',
+            incomplete: ' ',
+            width: 20,
+            total,
+            renderThrottle: '100'
+          });
+          res.on('data', function (chunk) {
+            const speed = ((bar.curr / ((new Date - bar.start) / 1000)) / 1048576).toFixed(1);
+            bar.tick(chunk.length, { speed });
+            if (bar.complete) {
+              console.log('\n');
+            }
+          });
+        } else {
+          const { statusCode, statusMessage } = res;
+          reject({ statusCode, statusMessage })
+          fs.unlink(file_save_path, () => {
+            console.log('Delete temp file success');
+          });
+        }
+      })
+      downloadStream().pipe(fs.createWriteStream(file_save_path));
     })
+
+    // return this._request({
+    //   key,
+    //   headers: {
+    //     range,
+    //     'if-modified-since': ifModifiedSince
+    //   }
+    // })
   }
 
   /**
@@ -363,12 +339,12 @@ class UFile {
       key = '/' + key
     }
     if (!url) {
-      url = `${this._protocol}://${this._bucket}${this._domain}${key}`
+      url = `${this.protocol}://${this.bucket}${this.domain}${key}`
     }
 
     const req = superagent(method, url)
     req.use((req) => {
-      req.set('Authorization', `UCloud ${this._publicKey}:${this._sign(req, key)}`)
+      req.set('Authorization', `UCloud ${this.publicKey}:${this._sign(req, key)}`)
     })
     if (headers) {
       req.set(headers)
@@ -399,7 +375,7 @@ class UFile {
     return req
   }
 
-  sign({ method, headers, bucket = this._bucket, key = '' }) {
+  sign({ method, headers, bucket = this.bucket, key = '' }) {
     if (!key.startsWith('/')) {
       key = '/' + key
     }
@@ -413,7 +389,7 @@ class UFile {
       })
     p.push(`/${bucket}${key}`)
     const stringToSign = p.join('\n')
-    return hmacSha1(stringToSign, this._privateKey)
+    return hmacSha1(stringToSign, this.privateKey)
 
     function getHeader(key) {
       let r = headers[key] || header[key.toLowerCase()]
@@ -439,9 +415,9 @@ class UFile {
           p.push(`${key.toLowerCase()}:${req.get(key)}`)
         }
       })
-    p.push(`/${this._bucket}${key}`)
+    p.push(`/${this.bucket}${key}`)
     const stringToSign = p.join('\n')
-    return hmacSha1(stringToSign, this._privateKey)
+    return hmacSha1(stringToSign, this.privateKey)
   }
 }
 

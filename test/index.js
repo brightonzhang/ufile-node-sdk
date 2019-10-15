@@ -31,17 +31,40 @@ describe('UFile SDK Test', function () {
   //     throw error
   //   }
   // })
-  it('PutFile', async function () {
-    try {
-      const key = 'asdasd';
-      const file = './img/about.png';
-      const res = await ufile.putFile({ key, file })
-      res.should.be.Object().and.has.property('code', 1);    
-      console.log('  test result: ',res);
-    } catch (error) {
-      throwError(error)
-    }
-  })
+
+  // it('PutFile', async function () {
+  //   try {
+  //     const file_prefix = 'smile-blog';
+  //     const file_path = './img/about.png';
+  //     const res = await ufile.putFile({ file_path, file_prefix });
+  //     res.should.be.Object().and.has.properties(['code', 'url']);
+  //     console.log(res);
+  //   } catch (error) {
+  //     throwError(error)
+  //   }
+  // })
+  // it('GetFile', async function () {
+  //   try {
+  //     const key = 'smile-blog/Sophia.JPG';
+  //     const file_save_dir = './download';
+  //     const res = await ufile.getFile({ key, file_save_dir });
+  //     res.should.be.Object().and.has.properties(['code', 'path']);
+  //     console.log(res);
+  //   } catch (error) {
+  //     throwError(error)
+  //   }
+  // })
+  // it('TransferFile', async function () {
+  //   try {
+  //     const originUrl = 'https://charbo.me/images/blogImg/';
+  //     const file_prefix = 'smile-blog';
+  //     const res = await ufile.transferFile({ originUrl, file_prefix });
+  //     res.should.be.Array().and.match(/^http/);
+  //     console.log(res);
+  //   } catch (error) {
+  //     throwError(error)
+  //   }
+  // })
 })
 
 // (async () => {
