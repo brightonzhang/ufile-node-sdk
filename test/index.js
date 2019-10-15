@@ -32,17 +32,17 @@ describe('UFile SDK Test', function () {
   //   }
   // })
 
-  // it('PutFile', async function () {
-  //   try {
-  //     const file_prefix = 'smile-blog';
-  //     const file_path = './img/about.jpg';
-  //     const res = await ufile.putFile({ file_path, file_prefix });
-  //     res.should.be.Object().and.has.properties(['code', 'url']);
-  //     console.log(res);
-  //   } catch (error) {
-  //     throwError(error)
-  //   }
-  // })
+  it('PutFile', async function () {
+    try {
+      const file_prefix = 'smile-blog';
+      const file_path = './img/about.jpg';
+      const res = await ufile.putFile({ file_path, file_prefix });
+      res.should.be.Object().and.has.properties(['code', 'url']);
+      console.log(res);
+    } catch (error) {
+      throwError(error)
+    }
+  })
   // it('GetFile', async function () {
   //   try {
   //     const key = 'smile-blog/Sophia.JPG';
@@ -54,28 +54,28 @@ describe('UFile SDK Test', function () {
   //     throwError(error)
   //   }
   // })
-  it('TransferFile', async function () {
-    this.timeout(50000);
+  // it('TransferFile', async function () {
+  //   this.timeout(50000);
 
-    try {
-      const bucket = 'charbo-assets';
-      const file_prefix='smile-blog';
-      const urlArr = [
-        {
-        url:'https://resource.shirmy.me/blog/covers/dark-line.jpg',
-        file_prefix
-      },{
-        url:'https://resource.shirmy.me/blog/covers/category/coding-cover.jpg',
-        file_prefix
-      },
-    ]
-      const res = await new UFile({ bucket }).transferFile(urlArr);
-      res.should.be.Array().and.match(/^http/);
-      console.log(res);
-    } catch (error) {
-      throwError(error)
-    }
-  })
+  //   try {
+  //     const bucket = 'charbo-assets';
+  //     const file_prefix='smile-blog';
+  //     const urlArr = [
+  //       {
+  //       url:'https://resource.shirmy.me/blog/covers/dark-line.jpg',
+  //       file_prefix
+  //     },{
+  //       url:'https://resource.shirmy.me/blog/covers/category/coding-cover.jpg',
+  //       file_prefix
+  //     },
+  //   ]
+  //     const res = await new UFile({ bucket }).transferFile(urlArr);
+  //     res.should.be.Array().and.match(/^http/);
+  //     console.log(res);
+  //   } catch (error) {
+  //     throwError(error)
+  //   }
+  // })
 
 })
 
