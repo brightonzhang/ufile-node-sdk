@@ -15,34 +15,32 @@ const ufileBucket = new UFileBucket(config);
 const ufile = new UFile(config);
 
 describe('UFile SDK Test', function () {
-  this.timeout(5000); 
-  // it('PrefixFileList', async function () {
-  //   try {
-  //     const res = await ufile.prefixFileList({
-  //       // prefix: 'smile-blog',
-  //       // limit:1,
-  //       // marker:'about.jpg'
-  //     })
-  //     res.body['DataSet'].should.be.Array()
-  //     // console.log(res.body);
-  //   } catch (error) {
-  //     console.error(error.response.body)
-  //     // console.error(e.response.req._headers)
-  //     throw error
-  //   }
-  // })
-
-  it('PutFile', async function () {
+  this.timeout(5000);
+  it('PrefixFileList', async function () {
     try {
-      const file_prefix = 'smile-blog';
-      const file_path = './img/about.jpg';
-      const res = await ufile.putFile({ file_path, file_prefix });
-      res.should.be.Object().and.has.properties(['code', 'url']);
-      console.log(res);
+      const res = await ufile.prefixFileList({
+        // prefix: 'smile-blog',
+        // limit:1,
+        // marker:'about.jpg'
+      })
+      res['DataSet'].should.be.Array();
+      console.log(`  Got ${res['DataSet'].length} result`);
     } catch (error) {
       throwError(error)
     }
   })
+
+  // it('PutFile', async function () {
+  //   try {
+  //     const file_prefix = 'smile-blog';
+  //     const file_path = './img/about.jpg';
+  //     const res = await ufile.putFile({ file_path, file_prefix });
+  //     res.should.be.Object().and.has.properties(['code', 'url']);
+  //     console.log(res);
+  //   } catch (error) {
+  //     throwError(error)
+  //   }
+  // })
   // it('GetFile', async function () {
   //   try {
   //     const key = 'smile-blog/Sophia.JPG';
@@ -56,7 +54,6 @@ describe('UFile SDK Test', function () {
   // })
   // it('TransferFile', async function () {
   //   this.timeout(50000);
-
   //   try {
   //     const bucket = 'charbo-assets';
   //     const file_prefix='smile-blog';
@@ -79,17 +76,6 @@ describe('UFile SDK Test', function () {
 
 })
 
-// (async () => {
-//   try {
-//     const key = 'asdasd';
-//     const file = './img/about.jpg';
-//     const res = await ufile.putFile({ key, file })
-//     console.log(`test res: ${res}`);
-//   } catch (error) {
-//     console.log(error)
-
-//   }
-// })()
 const throwError = (error) => {
   if (error instanceof Error) {
     throw (error)

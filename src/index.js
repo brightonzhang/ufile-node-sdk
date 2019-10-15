@@ -5,13 +5,14 @@
 const path = require('path');
 const fs = require('fs');
 const request = require('request');
-const crypto = require('crypto')
-const pascalCase = require('pascal-case')
-const Stream = require('stream')
+const crypto = require('crypto');
+// 转换驼峰命名
+const pascalCase = require('pascal-case');
+const Stream = require('stream');
 const shortid = require('shortid');
 const mime = require('mime');
-const _ = require('lodash');
 const ProgressBar = require('progress');
+// const qs = require('qs');
 const config = require(path.resolve(process.cwd(), './ufile-config'));
 
 
@@ -40,8 +41,8 @@ class UFile {
   _getKey(file_path, file_prefix = '', filename, unique) {
     file_path = file_path.replace(/\\/g, "/");
     file_prefix = !file_prefix || file_prefix.endsWith('/') ? file_prefix : file_prefix + '/';
-    filename = filename ? `${filename}${filename.indexOf('.') !== -1 ? '' : file_path.substr(file_path.lastIndexOf('.'))}`
-      : file_path.substr(file_path.lastIndexOf('/') + 1);
+    filename = filename ? `${filename}${filename.indexOf('.') !== -1 ? '' : path.extname(file_path)}`
+      : path.basename(file_path);
     let key = file_prefix + filename;
     if (unique) {
       const id = (typeof (unique) === 'string' || typeof (unique) === 'number') ? unique : shortid.generate();
@@ -58,15 +59,29 @@ class UFile {
    * @returns {Promise}
    */
   prefixFileList({ prefix, marker, limit }) {
-    return this._request({
-      url: `${this.protocol}://${this.bucket}${this.domain}`,
-      query: {
-        list: '',
-        prefix,
-        marker,
-        limit
-      }
+    const query = {
+      list: '',
+      prefix,
+      marker,
+      limit
+    };
+    return new Promise((resolve, reject) => {
+      this._request({ query }, resolve, reject);
+      //   request.get({
+      //     url: `${this.protocol}://${this.bucket}${this.domain}${urlQuery}`,
+      //     headers: {
+      //       Authorization: `UCloud ${this.publicKey}:${this.sign()}`,
+      //     }
+      //   }, (error, { statusCode, statusMessage } = {}, body) => {
+      //     if (error || statusCode !== 200) {
+      //       reject({ statusCode, statusMessage, msg: error || JSON.parse(body) })
+      //       return;
+      //     }
+      //     resolve(JSON.parse(body));
+      //   })
+
     })
+
   }
 
   /**
@@ -90,9 +105,9 @@ class UFile {
           Authorization: `UCloud ${this.publicKey}:${this.sign({ method: "PUT", headers, key })}`,
           ...headers
         }
-      }, function (error, { request: { href: url } = {}, statusCode, statusMessage } = {}, body) {
+      }, (error, { request: { href: url } = {}, statusCode, statusMessage } = {}, body) => {
         if (error || statusCode !== 200) {
-          reject({ statusCode, statusMessage, msg: error || body })
+          reject({ statusCode, statusMessage, msg: error || JSON.parse(body) })
           return;
         }
         const res = { code: 1, url };
@@ -108,7 +123,7 @@ class UFile {
 
   /**
     * 文件转移
-    * @param {string}  
+    * @param {Array} urlArr 目标链接数组，数组元素可为字符串或对象
     */
   transferFile(urlArr = []) {
     let promises = [];
@@ -166,15 +181,14 @@ class UFile {
   getFile({ url, key, file_save_dir = './download', file_save_name, containPrefix = false }) {
     if (!key && !url) {
       return Promise.reject('Define url or key!')
-
     } else {
       url = url || `${this.resoureUrl}/${key}`
     }
     if (!file_save_name) {
       if (containPrefix && key) {
-        file_save_name = file_save_name || key.replace('/', '_');
+        file_save_name = file_save_name || key.replace(/\//g, '_');
       } else {
-        file_save_name = file_save_name || url.substr(url.lastIndexOf('/') !== -1 ? url.lastIndexOf('/') + 1 : 0);
+        file_save_name = file_save_name || path.basename(url);
       }
     }
     file_save_name = file_save_name.indexOf('.') !== -1 ? file_save_name : file_save_name + '.dl';
@@ -182,9 +196,9 @@ class UFile {
     return new Promise((resolve, reject) => {
       const downloadStream = () => request.get({
         url: url,
-      }, function (error, res, body) {
-        if (error) {
-          reject(error);
+      }, (error, { statusCode, statusMessage } = {}, body) => {
+        if (error || statusCode !== 200) {
+          reject({ statusCode, statusMessage, msg: error || JSON.parse(body) })
           return;
         }
         resolve({ code: 1, path: file_save_path })
@@ -379,51 +393,63 @@ class UFile {
     })
   }
 
-  _request({ url, query, body, method = 'get', files, headers, key = '' }) {
-    if (!key.startsWith('/')) {
-      key = '/' + key
-    }
-    if (!url) {
-      url = `${this.protocol}://${this.bucket}${this.domain}${key}`
-    }
+  _request({ url, query, body, method = 'GET', files, headers, key = '' }, resolve, reject) {
+    url = url || `${this.resoureUrl}/${key}`;
+    // url += qs.stringify(query, { addQueryPrefix: true });
+    var options = {
+      url,
+      method,
+      headers: {
+        Authorization: `UCloud ${this.publicKey}:${this.sign({ method, headers, key })}`,
+        ...headers
+      },
+      qs: query,
+      body
+    };
 
-    const req = superagent(method, url)
-    req.use((req) => {
-      req.set('Authorization', `UCloud ${this.publicKey}:${this._sign(req, key)}`)
+    return request(options, (error, res, body) => {
+      body = JSON.parse(body)
+      if (error || res.statusCode !== 200) {
+        const { statusCode, statusMessage } = res;
+        reject({ statusCode, statusMessage, msg: error || body })
+        return;
+      }
+      resolve(body)
     })
-    if (headers) {
-      req.set(headers)
-    }
-    req.set('User-Agent', 'nodejs-sdk-ver/1.0.3')
+    // const req = superagent(method, url)
+    // req.use((req) => {
+    //   req.set('Authorization', `UCloud ${this.publicKey}:${this._sign(req, key)}`)
+    // })
+    // if (headers) {
+    //   req.set(headers)
+    // }
+    // req.set('User-Agent', 'nodejs-sdk-ver/1.0.3')
 
 
-    switch (method.toLowerCase()) {
-      case 'post':
-      case 'put':
-      case 'patch':
-        if (files) {
-          req.field(body)
-          Object.keys(files)
-            .forEach((key) => {
-              req.attach(key, files[key])
-            })
-        } else {
-          req.send(body)
-        }
-        break
-      default:
-        break
-    }
-    if (query) {
-      req.query(query)
-    }
-    return req
+    // switch (method.toLowerCase()) {
+    //   case 'post':
+    //   case 'put':
+    //   case 'patch':
+    //     if (files) {
+    //       req.field(body)
+    //       Object.keys(files)
+    //         .forEach((key) => {
+    //           req.attach(key, files[key])
+    //         })
+    //     } else {
+    //       req.send(body)
+    //     }
+    //     break
+    //   default:
+    //     break
+    // }
+    // if (query) {
+    //   req.query(query)
+    // }
+    // return req
   }
 
-  sign({ method, headers, bucket = this.bucket, key = '' }) {
-    if (!key.startsWith('/')) {
-      key = '/' + key
-    }
+  sign({ method = 'GET', headers = {}, bucket = this.bucket, key = '' } = {}) {
     let p = [method.toUpperCase(), getHeader('content-md5'), getHeader('content-type'), getHeader('date')]
     Object.keys(headers)
       .sort()
@@ -432,7 +458,7 @@ class UFile {
           p.push(`${key.toLowerCase()}:${getHeader(key)}`)
         }
       })
-    p.push(`/${bucket}${key}`)
+    p.push(`/${bucket}/${key}`)
     const stringToSign = p.join('\n')
     return hmacSha1(stringToSign, this.privateKey)
 
