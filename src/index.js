@@ -108,31 +108,6 @@ class UFile {
       return Promise.reject(error);
     }
     return uploadRes;
-
-
-    // return new Promise((resolve, reject) => {
-    //   const uploadStream = request.put({
-    //     url: `${this.resoureUrl}/${key}`,
-    //     headers: {
-    //       Authorization: `UCloud ${this.publicKey}:${this.sign({ method: "PUT", headers, key })}`,
-    //       ...headers
-    //     }
-    //   }, (error, { request: { href: url } = {}, statusCode, statusMessage } = {}, body) => {
-    //     if (error || statusCode !== 200) {
-    //       reject({ statusCode, statusMessage, msg: error || JSON.parse(body || '{}') })
-    //       return;
-    //     }
-    //     const res = { code: 1, url };
-    //     resolve(res);
-    //   }).on('response', ({ statusCode }) => {
-    //     if (statusCode !== 200) {
-    //       return;
-    //     }
-    //     console.log('  Uploading...');
-
-    //   });
-    //   fs.createReadStream(file_path).pipe(uploadStream);
-    // })
   }
 
   /**
@@ -242,49 +217,6 @@ class UFile {
     }
     return downloadRes;
 
-    return new Promise((resolve, reject) => {
-      const downloadStream = request.get({
-        url: url,
-      }, (error, { statusCode, statusMessage } = {}, body) => {
-        if (error || statusCode !== 200) {
-          reject({ statusCode, statusMessage, msg: error || JSON.parse(body || '{}') })
-          return;
-        }
-        resolve({ code: 1, path: file_save_path })
-      }).on('response', (res) => {
-        const total = parseInt(res.headers['content-length']);
-        if (res.statusCode !== 200) {
-          const { statusCode, statusMessage } = res;
-          reject({ statusCode, statusMessage })
-          unlinkFile(file_save_path);
-          return;
-        }
-        const bar = new ProgressBar('  Downloading :percent [:bar] at :speed MB/s :elapseds spent', {
-          complete: '=',
-          incomplete: ' ',
-          width: 20,
-          total,
-          renderThrottle: '100'
-        });
-        res.on('data', function (chunk) {
-          const speed = ((bar.curr / ((new Date - bar.start) / 1000)) / 1048576).toFixed(1);
-          bar.tick(chunk.length, { speed });
-          if (bar.complete) {
-            console.log('\n');
-          }
-        });
-      });
-
-      downloadStream.pipe(fs.createWriteStream(file_save_path));
-    })
-
-    // return this._sendRequest({
-    //   key,
-    //   headers: {
-    //     range,
-    //     'if-modified-since': ifModifiedSince
-    //   }
-    // })
   }
 
 
