@@ -1,0 +1,387 @@
+<h1 id="ufile-node-sdk">ufile-node-sdk</h1>
+<p>ufile官方的Node SDK改进</p>
+<p>接口参数和返回参考<a href="https://docs.ucloud.cn/api/ufile-api/index">https://docs.ucloud.cn/api/ufile-api/index</a></p>
+<p><a name="UFile"></a></p>
+<h2 id="ufile">UFile</h2>
+<p><strong>Kind</strong>: global class  </p>
+<ul>
+<li><a href="#UFile">UFile</a><ul>
+<li><a href="#new_UFile_new">new UFile(publicKey, privateKey, bucket, domain, protocol)</a></li>
+<li><a href="#UFile+getPrefixFileList">.getPrefixFileList([prefix], [marker], [limit])</a> ⇒ <code>Promise</code></li>
+<li><a href="#UFile+putFile">.putFile(key)</a> ⇒ <code>Array</code></li>
+<li><a href="#UFile+transferFile">.transferFile(urlArr)</a> ⇒ <code>Array</code></li>
+<li><a href="#UFile+uploadHit">.uploadHit(hash, fileName, fileSize)</a> ⇒ <code>Promise</code></li>
+<li><a href="#UFile+getFile">.getFile(key)</a> ⇒ <code>Promise</code></li>
+<li><a href="#UFile+headFile">.headFile(key)</a> ⇒ <code>Promise</code></li>
+<li><a href="#UFile+deleteFile">.deleteFile(key)</a> ⇒ <code>Promise</code></li>
+<li><a href="#UFile+initiateMultipartUpload">.initiateMultipartUpload(key)</a> ⇒ <code>Promise</code></li>
+<li><a href="#UFile+uploadPart">.uploadPart(key, uploadId, partNumber, buffer)</a> ⇒ <code>Promise</code></li>
+<li><a href="#UFile+finishMultipartUpload">.finishMultipartUpload(key, uploadId, [newKey], parts)</a> ⇒ <code>Promise</code></li>
+<li><a href="#UFile+abortMultipartUpload">.abortMultipartUpload(key, uploadId)</a> ⇒ <code>Promise</code></li>
+<li><a href="#UFile+getMultiUploadId">.getMultiUploadId([prefix], [marker], [limit])</a> ⇒ <code>Promise</code></li>
+<li><a href="#UFile+getMultiUploadPart">.getMultiUploadPart(uploadId)</a> ⇒ <code>Promise</code></li>
+<li><a href="#UFile+opMeta">.opMeta(key, mimeType)</a> ⇒ <code>Promise</code></li>
+</ul>
+</li>
+</ul>
+<p><a name="new_UFile_new"></a></p>
+<h3 id="new-ufilepublickey-privatekey-bucket-domain-protocol">new UFile(publicKey, privateKey, bucket, domain, protocol)</h3>
+<p>UFile SDK</p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>publicKey</td>
+<td><code>string</code></td>
+<td>api公钥</td>
+</tr>
+<tr>
+<td>privateKey</td>
+<td><code>string</code></td>
+<td>api私钥</td>
+</tr>
+<tr>
+<td>bucket</td>
+<td><code>string</code></td>
+<td>存储空间名</td>
+</tr>
+<tr>
+<td>domain</td>
+<td><code>string</code></td>
+<td>存储空间域名</td>
+</tr>
+<tr>
+<td>protocol</td>
+<td><code>boolean</code></td>
+<td>网络协议头</td>
+</tr>
+</tbody></table>
+<p><a name="UFile+getPrefixFileList"></a></p>
+<h3 id="ufilegetprefixfilelistprefix-marker-limit-⇒-codepromisecode">uFile.getPrefixFileList([prefix], [marker], [limit]) ⇒ <code>Promise</code></h3>
+<p>前缀列表查询</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[prefix]</td>
+<td><code>string</code></td>
+<td><code>&quot;&#x27;&#x27;&quot;</code></td>
+<td>前缀，utf-8编码，默认为空字符串</td>
+</tr>
+<tr>
+<td>[marker]</td>
+<td><code>string</code></td>
+<td><code>&quot;&#x27;&#x27;&quot;</code></td>
+<td>标志字符串，utf-8编码，默认为空字符串</td>
+</tr>
+<tr>
+<td>[limit]</td>
+<td><code>number</code></td>
+<td><code>20</code></td>
+<td>文件列表数目，默认为20</td>
+</tr>
+</tbody></table>
+<p><a name="UFile+putFile"></a></p>
+<h3 id="ufileputfilekey-⇒-codearraycode">uFile.putFile(key) ⇒ <code>Array</code></h3>
+<p>上传文件</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a><br><strong>Returns</strong>: <code>Array</code> - 上传成功的资源路径  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>key</td>
+<td><code>string</code></td>
+</tr>
+</tbody></table>
+<p><a name="UFile+transferFile"></a></p>
+<h3 id="ufiletransferfileurlarr-⇒-codearraycode">uFile.transferFile(urlArr) ⇒ <code>Array</code></h3>
+<p>文件转移</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a><br><strong>Returns</strong>: <code>Array</code> - 转移后的资源路径  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>urlArr</td>
+<td><code>Array</code></td>
+<td>源文件链接数组，数组元素可为字符串或对象</td>
+</tr>
+</tbody></table>
+<p><a name="UFile+uploadHit"></a></p>
+<h3 id="ufileuploadhithash-filename-filesize-⇒-codepromisecode">uFile.uploadHit(hash, fileName, fileSize) ⇒ <code>Promise</code></h3>
+<p>秒传文件</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>hash</td>
+<td><code>string</code></td>
+<td>待上传文件的ETag,详见ETag生成文档</td>
+</tr>
+<tr>
+<td>fileName</td>
+<td><code>string</code></td>
+<td>Bucket中文件的名称</td>
+</tr>
+<tr>
+<td>fileSize</td>
+<td><code>string</code></td>
+<td>待上传文件的大小</td>
+</tr>
+</tbody></table>
+<p><a name="UFile+getFile"></a></p>
+<h3 id="ufilegetfilekey-⇒-codepromisecode">uFile.getFile(key) ⇒ <code>Promise</code></h3>
+<p>下载文件</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>key</td>
+<td><code>string</code></td>
+<td>key</td>
+</tr>
+</tbody></table>
+<p><a name="UFile+headFile"></a></p>
+<h3 id="ufileheadfilekey-⇒-codepromisecode">uFile.headFile(key) ⇒ <code>Promise</code></h3>
+<p>查询文件基本信息</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>key</td>
+<td><code>string</code></td>
+</tr>
+</tbody></table>
+<p><a name="UFile+deleteFile"></a></p>
+<h3 id="ufiledeletefilekey-⇒-codepromisecode">uFile.deleteFile(key) ⇒ <code>Promise</code></h3>
+<p>删除文件</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>key</td>
+<td><code>string</code></td>
+</tr>
+</tbody></table>
+<p><a name="UFile+initiateMultipartUpload"></a></p>
+<h3 id="ufileinitiatemultipartuploadkey-⇒-codepromisecode">uFile.initiateMultipartUpload(key) ⇒ <code>Promise</code></h3>
+<p>初始化分片上传</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>key</td>
+<td><code>string</code></td>
+<td>文件名</td>
+</tr>
+</tbody></table>
+<p><a name="UFile+uploadPart"></a></p>
+<h3 id="ufileuploadpartkey-uploadid-partnumber-buffer-⇒-codepromisecode">uFile.uploadPart(key, uploadId, partNumber, buffer) ⇒ <code>Promise</code></h3>
+<p>上传分片</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>key</td>
+<td><code>string</code></td>
+<td>文件名</td>
+</tr>
+<tr>
+<td>uploadId</td>
+<td><code>string</code></td>
+<td>分片id</td>
+</tr>
+<tr>
+<td>partNumber</td>
+<td><code>number</code></td>
+<td>第几块分片</td>
+</tr>
+<tr>
+<td>buffer</td>
+<td><code>buffer</code></td>
+<td>内容</td>
+</tr>
+</tbody></table>
+<p><a name="UFile+finishMultipartUpload"></a></p>
+<h3 id="ufilefinishmultipartuploadkey-uploadid-newkey-parts-⇒-codepromisecode">uFile.finishMultipartUpload(key, uploadId, [newKey], parts) ⇒ <code>Promise</code></h3>
+<p>完成分片</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>key</td>
+<td><code>string</code></td>
+<td>文件名</td>
+</tr>
+<tr>
+<td>uploadId</td>
+<td><code>string</code></td>
+<td>分片id</td>
+</tr>
+<tr>
+<td>[newKey]</td>
+<td><code>string</code></td>
+<td>等上传完毕开始指定的key可能已经被占用,遇到这种情形时会采用newKey参数的值作为文件最终的key，否则仍然采用原来的key</td>
+</tr>
+<tr>
+<td>parts</td>
+<td><code>array</code></td>
+<td>分片的etag们</td>
+</tr>
+</tbody></table>
+<p><a name="UFile+abortMultipartUpload"></a></p>
+<h3 id="ufileabortmultipartuploadkey-uploadid-⇒-codepromisecode">uFile.abortMultipartUpload(key, uploadId) ⇒ <code>Promise</code></h3>
+<p>放弃分片</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>key</td>
+<td><code>string</code></td>
+<td>文件名</td>
+</tr>
+<tr>
+<td>uploadId</td>
+<td><code>string</code></td>
+<td>分片id</td>
+</tr>
+</tbody></table>
+<p><a name="UFile+getMultiUploadId"></a></p>
+<h3 id="ufilegetmultiuploadidprefix-marker-limit-⇒-codepromisecode">uFile.getMultiUploadId([prefix], [marker], [limit]) ⇒ <code>Promise</code></h3>
+<p>获取正在执行的分片上传</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[prefix]</td>
+<td><code>string</code></td>
+<td></td>
+<td>前缀，utf-8编码，默认为空字符串</td>
+</tr>
+<tr>
+<td>[marker]</td>
+<td><code>string</code></td>
+<td></td>
+<td>标志字符串，utf-8编码，默认为空字符串</td>
+</tr>
+<tr>
+<td>[limit]</td>
+<td><code>number</code></td>
+<td><code>20</code></td>
+<td>id列表数目，默认为20</td>
+</tr>
+</tbody></table>
+<p><a name="UFile+getMultiUploadPart"></a></p>
+<h3 id="ufilegetmultiuploadpartuploadid-⇒-codepromisecode">uFile.getMultiUploadPart(uploadId) ⇒ <code>Promise</code></h3>
+<p>获取已上传成功的分片列表</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>uploadId</td>
+<td><code>string</code></td>
+<td>上传id</td>
+</tr>
+</tbody></table>
+<p><a name="UFile+opMeta"></a></p>
+<h3 id="ufileopmetakey-mimetype-⇒-codepromisecode">uFile.opMeta(key, mimeType) ⇒ <code>Promise</code></h3>
+<p>操作文件的Meta信息</p>
+<p><strong>Kind</strong>: instance method of <a href="#UFile"><code>UFile</code></a>  </p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>key</td>
+<td><code>string</code></td>
+<td>key</td>
+</tr>
+<tr>
+<td>mimeType</td>
+<td><code>string</code></td>
+<td>文件的mimetype</td>
+</tr>
+</tbody></table>
