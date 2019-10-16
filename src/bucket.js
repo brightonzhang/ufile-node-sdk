@@ -1,7 +1,3 @@
-/**
- * Created by bangbang93 on 2017/9/15.
- */
-'use strict';
 const request = require('superagent')
 const crypto = require('crypto')
 const pascalCase = require('pascal-case')

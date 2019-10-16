@@ -1,7 +1,3 @@
-/**
- * Created by bangbang93 on 2017/9/13.
- */
-'use strict';
 const path = require('path');
 const fs = require('fs');
 const request = require('request');
