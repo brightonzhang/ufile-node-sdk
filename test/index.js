@@ -1,7 +1,8 @@
 const should = require('should');
 const path = require('path');
 const UFile = require('../src/index');
-const UFileBucket = require('../src/bucket');
+const { throwError, unlinkFile } = require('../src/helper');
+const chalk = require('chalk');
 
 const config = require(path.resolve(process.cwd(), './ufile-config'));
 const ufile = new UFile(config);
@@ -9,12 +10,33 @@ const ufile = new UFile(config);
 
 const RunTest = function () {
   this.timeout(5000);
-  // it('PutFile', PutFile)
-  // it('GetFile', GetFile)
-  it('TransferFile', TransferFile)
-  // it('PrefixFileList', PrefixFileList)
-};
+  it('PutFile', PutFile);
+  // it('GetFile', GetFile);
+  // it('TransferFile', TransferFile);
+  // it('PrefixFileList', PrefixFileList);
+  // it('HeadFile', HeadFile);
+  it('DeleteFile', DeleteFile);
 
+};
+const HeadFile = async function () {
+  try {
+    const res = await ufile.headFile(123);
+    res.should.be.Object().and.has.property('etag');
+    // console.log(res);
+  } catch (error) {
+    throwError(error)
+  }
+}
+
+const DeleteFile = async function () {
+  try {
+    const res = await ufile.deleteFile(123);
+    res.should.be.Object().and.has.properties(['code','msg']);
+    console.log(res);
+  } catch (error) {
+    throwError(error)
+  }
+}
 const PrefixFileList = async function () {
   try {
     const res = await ufile.getPrefixFileList({
@@ -36,7 +58,8 @@ const PutFile = async function () {
   try {
     const file_prefix = 'test';
     const file_path = './img/about.jpg';
-    const res = await ufile.putFile({ file_path, file_prefix });
+    const key = 123;
+    const res = await ufile.putFile({ file_path, file_prefix,key });
     res.should.be.Object().and.has.properties(['code', 'url']);
     console.log(res);
   } catch (error) {
@@ -77,12 +100,6 @@ const TransferFile = async function () {
   }
 }
 
-describe('UFile SDK Test', RunTest)
+describe('UFile SDK Test', RunTest);
 
-const throwError = (error) => {
-  if (error instanceof Error) {
-    throw (error)
-  } else {
-    throw (new Error(JSON.stringify(error)))
-  }
-}
+

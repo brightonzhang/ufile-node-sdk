@@ -1,15 +1,18 @@
 const path = require('path');
 const fs = require('fs');
 const request = require('request');
-const crypto = require('crypto');
-// 转换驼峰命名
-const pascalCase = require('pascal-case');
-const Stream = require('stream');
-const shortid = require('shortid');
-const mime = require('mime');
+const _ = require('lodash');
 const ProgressBar = require('progress');
-// const qs = require('qs');
 const config = require(path.resolve(process.cwd(), './ufile-config'));
+const chalk = require('chalk');
+
+const {
+  hmacSha1,
+  getKey,
+  getMimeType,
+  getFileSize,
+  unlinkFile
+} = require('./helper');
 
 
 class UFile {
@@ -34,19 +37,7 @@ class UFile {
     return `${protocol || this.protocol}://${bucket || this.bucket}${domain || this.domain}`;
   }
 
-  _getKey(file_path, file_prefix = '', filename, unique) {
-    file_path = file_path.replace(/\\/g, "/");
-    file_prefix = !file_prefix || file_prefix.endsWith('/') ? file_prefix : file_prefix + '/';
-    filename = filename ? `${filename}${filename.indexOf('.') !== -1 ? '' : path.extname(file_path)}`
-      : path.basename(file_path);
-    let key = file_prefix + filename;
-    if (unique) {
-      const id = (typeof (unique) === 'string' || typeof (unique) === 'number') ? unique : shortid.generate();
-      const keyArr = key.split('.');
-      key = `${keyArr[0]}_${id}.${keyArr[keyArr.length - 1]}`;
-    }
-    return key;
-  }
+
   /**
    * 前缀列表查询
    * @param {string} [prefix=''] 前缀，utf-8编码，默认为空字符串
@@ -80,7 +71,7 @@ class UFile {
    * @returns {Array} 上传成功的资源路径
    */
   async putFile({ key, file_path, file_prefix, filename, unique = false }) {
-    key = key || this._getKey(file_path, file_prefix, filename, unique);
+    key = key || getKey(file_path, file_prefix, filename, unique);
     const method = "PUT";
     const headers = {
       'Content-Type': getMimeType(file_path),
@@ -94,7 +85,7 @@ class UFile {
             if (statusCode !== 200) {
               return;
             }
-            console.log('  Uploading...');
+            console.log(chalk.cyanBright('  Uploading...'));
           });
         fs.createReadStream(file_path).pipe(uploadStream);
       })
@@ -104,57 +95,6 @@ class UFile {
       return Promise.reject(error);
     }
     return uploadRes;
-  }
-
-  /**
-    * 文件转移
-    * @param {Array} urlArr 源文件链接数组，数组元素可为字符串或对象
-    * @returns {Array} 转移后的资源路径
-    */
-  transferFile(urlArr = []) {
-    let promises = [];
-    urlArr.every((item) => {
-      if (typeof (item) === 'string') {
-        item = { url: item }
-      } else if (Object.prototype.toString.call(item) !== '[object Object]') {
-        promises.push(Promise.reject('Invalid type'))
-        return false;
-      }
-      // const { file_prefix, filename, unique, key } = item;
-      const promise = new Promise(async (resolve, reject) => {
-        try {
-          const { path: file_path } = await this.getFile({ url: item.url });
-          const { url: resUrl } = await this.putFile({ file_path, ...item });
-          resolve(resUrl);
-          unlinkFile(file_path);
-        } catch (error) {
-          reject(error);
-        }
-      })
-      promises.push(promise);
-      return true;
-    })
-
-
-    return Promise.all(promises)
-  }
-
-  /**
-   * 秒传文件
-   * @param {string} hash 待上传文件的ETag,详见ETag生成文档
-   * @param {string} fileName Bucket中文件的名称
-   * @param {string} fileSize 待上传文件的大小
-   * @returns {Promise}
-   */
-  uploadHit({ hash, fileName, fileSize }) {
-    return this._sendRequest({
-      url: `${this.protocol}://${this.bucket}${this.domain}/uploadhit`,
-      query: {
-        Hash: hash,
-        FileName: fileName,
-        FileSize: fileSize,
-      }
-    })
   }
 
   /**
@@ -214,7 +154,93 @@ class UFile {
     return downloadRes;
 
   }
+  /**
+    * 文件转移
+    * @param {Array} urlArr 源文件链接数组，数组元素可为字符串或对象
+    * @returns {Array} 转移后的资源路径
+    */
+  transferFile(urlArr = []) {
+    let promises = [];
+    urlArr.every((item) => {
+      if (_.isString(item)) {
+        item = { url: item }
+      } else if (Object.prototype.toString.call(item) !== '[object Object]') {
+        promises.push(Promise.reject('Invalid type'))
+        return false;
+      }
+      const putConfig = _.pick(item, ['file_prefix', 'filename', 'unique', 'key']);
+      const promise = new Promise(async (resolve, reject) => {
+        try {
+          const { path: file_path } = await this.getFile({ url: item.url });
+          const { url: resUrl } = await this.putFile({ file_path, ...putConfig });
+          resolve(resUrl);
+          unlinkFile(file_path).then(() => {
+            // console.log(chalk.greenBright('  Delete success'));
+          });
+        } catch (error) {
+          reject(error);
+        }
+      })
+      promises.push(promise);
+      return true;
+    })
+    return Promise.all(promises)
+  }
 
+  /**
+   * 秒传文件
+   * @param {string} hash 待上传文件的ETag,详见ETag生成文档
+   * @param {string} fileName Bucket中文件的名称
+   * @param {string} fileSize 待上传文件的大小
+   * @returns {Promise}
+   */
+  uploadHit({ hash, fileName, fileSize }) {
+    return this._sendRequest({
+      url: `${this.protocol}://${this.bucket}${this.domain}/uploadhit`,
+      query: {
+        Hash: hash,
+        FileName: fileName,
+        FileSize: fileSize,
+      }
+    })
+  }
+
+  /**
+   * 查询文件基本信息
+   * @param {string} key
+   * @returns {Promise}
+   */
+  async headFile(key = '') {
+    if (_.isObject(key) && !_.isArray(key)) {
+      key = key.key
+    }
+
+    const { response } = await this._sendRequest({
+      method: 'HEAD',
+      key
+    })
+    return response.headers;
+  }
+
+  /**
+   * 删除文件
+   * @param {string} key
+   * @returns {Promise}
+   */
+  async deleteFile(key = '') {
+    if (_.isObject(key) && !_.isArray(key)) {
+      key = key.key
+    }
+    try {
+      await this._sendRequest({
+        method: 'DELETE',
+        key
+      })
+    } catch (error) {
+      return { code: 0, msg: error.statusMessage }
+    }
+    return { code: 1, msg: 'Delete success' };
+  }
 
   _sendRequest({ url, method = 'GET', headers, key = '', query, body }, outerResolve, outerReject) {
     url = url || `${this.resoureUrl}/${key}`;
@@ -236,7 +262,7 @@ class UFile {
       } catch{
         body = ''
       }
-      if (error || response.statusCode !== 200) {
+      if (error || !(response.statusCode >= 200 && response.statusCode < 300)) {
         const { statusCode, statusMessage } = response;
         reject({ statusCode, statusMessage, msg: error || body })
         return;
@@ -250,8 +276,6 @@ class UFile {
         req(resolve, reject);
       })
     }
-
-
   }
 
   sign({ method = 'GET', headers = {}, bucket = this.bucket, key = '' } = {}) {
@@ -299,37 +323,6 @@ class UFile {
 
 
 
-
-
-  /**
-   * 查询文件基本信息
-   * @param {string} key
-   * @returns {Promise}
-   */
-  headFile(key) {
-    if (typeof key === 'object') {
-      key = key.key
-    }
-    return this._sendRequest({
-      key,
-      method: 'head'
-    })
-  }
-
-  /**
-   * 删除文件
-   * @param {string} key
-   * @returns {Promise}
-   */
-  deleteFile(key) {
-    if (typeof key === 'object') {
-      key = key.key
-    }
-    return this._sendRequest({
-      key,
-      method: 'delete'
-    })
-  }
 
   /**
    * 初始化分片上传
@@ -455,53 +448,9 @@ class UFile {
       }
     })
   }
-
-
-
-
-
-
 }
 
-module.exports = UFile
+module.exports = UFile;
 
 
 
-function hmacSha1(str, privateKey, digest = 'base64') {
-  return crypto.createHmac('sha1', privateKey).update(str).digest(digest)
-}
-
-function pascalObject(obj) {
-  const r = {};
-  Object.keys(obj)
-    .forEach((key) => {
-      r[pascalCase(key)] = obj[key]
-    })
-  return r
-}
-
-function getMimeType(file_path) {
-  var ret = mime.getType(file_path);
-  if (!ret) {
-    return "application/octet-stream";
-  }
-  return ret;
-}
-
-function getFileSize(file_path) {
-  var stats = fs.statSync(file_path);
-  return stats.size;
-}
-
-function unlinkFile(file) {
-  if (typeof (file) === 'string') {
-    file = [file]
-  } else if (!Array.isArray(file)) {
-    return
-  }
-  file.forEach((item) => {
-    fs.unlink(item, () => {
-      // console.log(item);
-    })
-  })
-}
