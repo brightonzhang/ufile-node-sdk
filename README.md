@@ -1,201 +1,80 @@
-# ufile-rest
-ufile官方的node sdk实现比较悲惨……
 
-接口参数和返回参考<https://docs.ucloud.cn/api/ufile-api/index>
+[4;1mjsdoc-to-markdown[0m
 
-<a name="UFile"></a>
+  Generates markdown documentation from jsdoc-annotated source code. 
 
-## UFile
-**Kind**: global class  
+[4;1mSynopsis[0m
 
-* [UFile](#UFile)
-    * [new UFile(publicKey, privateKey, bucket, domain, protocol)](#new_UFile_new)
-    * [.prefixFileList([prefix], [marker], [limit])](#UFile+prefixFileList) ⇒ <code>Promise</code>
-    * [.putFile(key, file, [mimeType])](#UFile+putFile) ⇒ <code>Promise</code>
-    * [.uploadHit(hash, fileName, fileSize)](#UFile+uploadHit) ⇒ <code>Promise</code>
-    * [.getFile(key, [range], [ifModifiedSince])](#UFile+getFile) ⇒ <code>Promise</code>
-    * [.headFile(key)](#UFile+headFile) ⇒ <code>Promise</code>
-    * [.deleteFile(key)](#UFile+deleteFile) ⇒ <code>Promise</code>
-    * [.initiateMultipartUpload(key)](#UFile+initiateMultipartUpload) ⇒ <code>Promise</code>
-    * [.uploadPart(key, uploadId, partNumber, buffer)](#UFile+uploadPart) ⇒ <code>Promise</code>
-    * [.finishMultipartUpload(key, uploadId, [newKey], parts)](#UFile+finishMultipartUpload) ⇒ <code>Promise</code>
-    * [.abortMultipartUpload(key, uploadId)](#UFile+abortMultipartUpload) ⇒ <code>Promise</code>
-    * [.getMultiUploadId([prefix], [marker], [limit])](#UFile+getMultiUploadId) ⇒ <code>Promise</code>
-    * [.getMultiUploadPart(uploadId)](#UFile+getMultiUploadPart) ⇒ <code>Promise</code>
-    * [.opMeta(key, mimeType)](#UFile+opMeta) ⇒ <code>Promise</code>
+  $ jsdoc2md <jsdoc-options> [<dmd-options>] 
+  $ jsdoc2md <jsdoc-options> [1m--jsdoc[0m         
+  $ jsdoc2md <jsdoc-options> [1m--json[0m          
+  $ jsdoc2md <jsdoc-options> [1m--namepaths[0m     
+  $ jsdoc2md [1m--help[0m                          
+  $ jsdoc2md [1m--config[0m                        
 
-<a name="new_UFile_new"></a>
+[4;1mGeneral options[0m
 
-### new UFile(publicKey, privateKey, bucket, domain, protocol)
-UFile SDK
+  Main options affecting mode. If none of the following are supplied, the tool  
+  will generate markdown docs.                                                  
 
+  [1m-h[0m, [1m--help [0m   Print usage information                                                       
+  [1m--config[0m      Print all options supplied (from command line, `.jsdoc2md.json` or            
+                `package.json` under the `jsdoc2md` property) and exit. Useful for checking   
+                the tool is receiving the correct config.                                     
+  [1m--json[0m        Prints the data (jsdoc-parse output) supplied to the template (dmd).          
+  [1m--jsdoc[0m       Prints the raw jsdoc data.                                                    
+  [1m--version[0m                                                                                   
+  [1m--no-cache[0m    By default, repeat invocations against the same input with the same options   
+                returns from cache. This option disables that.                                
+  [1m--clear[0m       Clears the cache.                                                             
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| publicKey | <code>string</code> |  | api公钥 |
-| privateKey | <code>string</code> |  | api私钥 |
-| bucket | <code>string</code> |  | 存储空间名 |
-| domain | <code>string</code> |  | 存储空间域名 |
-| protocol | <code>boolean</code> | | 网络协议头 |
+[4;1mjsdoc options[0m
 
-<a name="UFile+prefixFileList"></a>
+  Options regarding the input source code, passed directly to jsdoc. 
 
-### uFile.prefixFileList([prefix], [marker], [limit]) ⇒ <code>Promise</code>
-前缀列表查询
+  [1m-f[0m, [1m--files [4mfile[0m ...[0m   A list of jsdoc explain files (or glob expressions) to parse for              
+                         documentation. Either this or [1m--source[0m must be supplied.                      
+  [1m--source[0m [4mstring[0m        A string containing source code to parse for documentation. Either this or    
+                         [1m--files[0m must be supplied.                                                     
+  [1m-c[0m, [1m--configure [4mfile[0m[0m   Path to a jsdoc configuration file, passed directly to `jsdoc -c`.            
+  [1m--namepaths[0m            Print namepaths.                                                              
 
-**Kind**: instance method of [<code>UFile</code>](#UFile)  
+[4;1mdmd[0m
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [prefix] | <code>string</code> | <code>&quot;&#x27;&#x27;&quot;</code> | 前缀，utf-8编码，默认为空字符串 |
-| [marker] | <code>string</code> | <code>&quot;&#x27;&#x27;&quot;</code> | 标志字符串，utf-8编码，默认为空字符串 |
-| [limit] | <code>number</code> | <code>20</code> | 文件列表数目，默认为20 |
+  These options affect how the markdown output looks. 
 
-<a name="UFile+putFile"></a>
+  [1m-t[0m, [1m--template <file>[0m               A custom handlebars template file to insert documentation into. The default   
+                                      template is `{{>main}}`.                                                      
+  [1m--private[0m                           Include identifiers marked [1m@private[0m in the output                             
+  [1m-d[0m, [1m--heading-depth [4mnumber[0m[0m          Root markdown heading depth, defaults to 2 ([1m##[0m).                              
+  [1m--plugin[0m [4mmodule[0m ...                 Use an installed package containing helper and/or partial overrides.          
+  [1m--helper[0m [4mmodule[0m ...                 Handlebars helper modules to override or extend the default set.              
+  [1m--partial[0m [4mfile[0m ...                  Handlebars partial files to override or extend the default set.               
+  [1m-l[0m, [1m--example-lang [4mstring[0m[0m           Specifies the default language used in [1m@example[0m blocks (for syntax-           
+                                      highlighting purposes). In the default gfm mode, each [1m@example[0m is wrapped in  
+                                      a fenced-code block. Example usage: [1m--example-lang js[0m. Use the special value  
+                                      [1mnone[0m for no specific language. While using this option, you can override the  
+                                      supplied language for any [1m@example[0m by specifying the [1m@lang[0m subtag, e.g        
+                                      [1m@example @lang hbs[0m. Specifying [1m@example @lang off[0m will disable code blocks    
+                                      for that example.                                                             
+  [1m--name-format[0m                       Format identifier names as code (i.e. wrap function/property/class etc names  
+                                      in backticks).                                                                
+  [1m--no-gfm[0m                            By default, dmd generates github-flavoured markdown. Not all markdown parsers 
+                                      render gfm correctly. If your generated docs look incorrect on sites other    
+                                      than Github (e.g. npmjs.org) try enabling this option to disable Github-      
+                                      specific syntax.                                                              
+  [1m--separators[0m                        Put [1m<hr>[0m breaks between identifiers. Improves readability on bulky docs.      
+  [1m-m[0m, [1m--module-index-format [4mstring[0m[0m    When muliple modules are found in the input source code, an index is          
+                                      generated. It can be styled by one of the following options: [1mnone[0m, [1mgrouped[0m,   
+                                      [1mtable[0m or [1mdl[0m.                                                                  
+  [1m-g[0m, [1m--global-index-format [4mstring[0m[0m    When muliple global-scope identifiers are found in the input source code, an  
+                                      index is generated. It can be styled by one of the following options: [1mnone[0m,   
+                                      [1mgrouped[0m, [1mtable[0m or [1mdl[0m.                                                         
+  [1m-p[0m, [1m--param-list-format [4mstring[0m[0m      Two options to render [1m@param[0m lists: [1mlist[0m or [1mtable[0m (default). Table format     
+                                      works well in most cases but switch to [1mlist[0m if things begin to look crowded.  
+  [1m-r[0m, [1m--property-list-format [4mstring[0m[0m   Two options to render [1m@property[0m lists: [1mlist[0m or [1mtable[0m (default).               
+  [1m--member-index-format[0m [4mstring[0m        Two options to render member lists: [1mlist[0m or [1mgrouped[0m (default). The [1mlist[0m view  
+                                      is loosely-based on the nodejs docs.                                          
 
-### uFile.putFile(key, file, [mimeType]) ⇒ <code>Promise</code>
-上传文件
-
-**Kind**: instance method of [<code>UFile</code>](#UFile)  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| key | <code>string</code> |  |  |
-| file | <code>Buffer</code> \| <code>Stream.Readable</code> \| <code>string</code> |  | 文件 |
-| [mimeType] | <code>string</code> | <code>&quot;&#x27;application/octet-stream&#x27;&quot;</code> | 文件类型 |
-
-<a name="UFile+uploadHit"></a>
-
-### uFile.uploadHit(hash, fileName, fileSize) ⇒ <code>Promise</code>
-秒传文件
-
-**Kind**: instance method of [<code>UFile</code>](#UFile)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| hash | <code>string</code> | 待上传文件的ETag,详见ETag生成文档 |
-| fileName | <code>string</code> | Bucket中文件的名称 |
-| fileSize | <code>string</code> | 待上传文件的大小 |
-
-<a name="UFile+getFile"></a>
-
-### uFile.getFile(key, [range], [ifModifiedSince]) ⇒ <code>Promise</code>
-下载文件
-
-**Kind**: instance method of [<code>UFile</code>](#UFile)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| key | <code>string</code> | key |
-| [range] | <code>string</code> | 分片下载的文件范围 |
-| [ifModifiedSince] | <code>string</code> | 只返回从某时修改过的文件，否则返回304(not modified) |
-
-<a name="UFile+headFile"></a>
-
-### uFile.headFile(key) ⇒ <code>Promise</code>
-查询文件基本信息
-
-**Kind**: instance method of [<code>UFile</code>](#UFile)  
-
-| Param | Type |
-| --- | --- |
-| key | <code>string</code> | 
-
-<a name="UFile+deleteFile"></a>
-
-### uFile.deleteFile(key) ⇒ <code>Promise</code>
-删除文件
-
-**Kind**: instance method of [<code>UFile</code>](#UFile)  
-
-| Param | Type |
-| --- | --- |
-| key | <code>string</code> | 
-
-<a name="UFile+initiateMultipartUpload"></a>
-
-### uFile.initiateMultipartUpload(key) ⇒ <code>Promise</code>
-初始化分片上传
-
-**Kind**: instance method of [<code>UFile</code>](#UFile)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| key | <code>string</code> | 文件名 |
-
-<a name="UFile+uploadPart"></a>
-
-### uFile.uploadPart(key, uploadId, partNumber, buffer) ⇒ <code>Promise</code>
-上传分片
-
-**Kind**: instance method of [<code>UFile</code>](#UFile)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| key | <code>string</code> | 文件名 |
-| uploadId | <code>string</code> | 分片id |
-| partNumber | <code>number</code> | 第几块分片 |
-| buffer | <code>buffer</code> | 内容 |
-
-<a name="UFile+finishMultipartUpload"></a>
-
-### uFile.finishMultipartUpload(key, uploadId, [newKey], parts) ⇒ <code>Promise</code>
-完成分片
-
-**Kind**: instance method of [<code>UFile</code>](#UFile)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| key | <code>string</code> | 文件名 |
-| uploadId | <code>string</code> | 分片id |
-| [newKey] | <code>string</code> | 等上传完毕开始指定的key可能已经被占用,遇到这种情形时会采用newKey参数的值作为文件最终的key，否则仍然采用原来的key |
-| parts | <code>array</code> | 分片的etag们 |
-
-<a name="UFile+abortMultipartUpload"></a>
-
-### uFile.abortMultipartUpload(key, uploadId) ⇒ <code>Promise</code>
-放弃分片
-
-**Kind**: instance method of [<code>UFile</code>](#UFile)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| key | <code>string</code> | 文件名 |
-| uploadId | <code>string</code> | 分片id |
-
-<a name="UFile+getMultiUploadId"></a>
-
-### uFile.getMultiUploadId([prefix], [marker], [limit]) ⇒ <code>Promise</code>
-获取正在执行的分片上传
-
-**Kind**: instance method of [<code>UFile</code>](#UFile)  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [prefix] | <code>string</code> |  | 前缀，utf-8编码，默认为空字符串 |
-| [marker] | <code>string</code> |  | 标志字符串，utf-8编码，默认为空字符串 |
-| [limit] | <code>number</code> | <code>20</code> | id列表数目，默认为20 |
-
-<a name="UFile+getMultiUploadPart"></a>
-
-### uFile.getMultiUploadPart(uploadId) ⇒ <code>Promise</code>
-获取已上传成功的分片列表
-
-**Kind**: instance method of [<code>UFile</code>](#UFile)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| uploadId | <code>string</code> | 上传id |
-
-<a name="UFile+opMeta"></a>
-
-### uFile.opMeta(key, mimeType) ⇒ <code>Promise</code>
-操作文件的Meta信息
-
-**Kind**: instance method of [<code>UFile</code>](#UFile)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| key | <code>string</code> | key |
-| mimeType | <code>string</code> | 文件的mimetype |
+  Project repository:   [4mhttps://github.com/jsdoc2md/jsdoc-to-markdown[0m 
 

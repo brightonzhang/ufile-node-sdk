@@ -4,7 +4,9 @@
   "description": "UFile SDK for NodeJS",
   "main": "src/index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "jsdoc": "jsdoc -c .jsdoc.json ",
+    "jsdoc2md": "jsdoc2md --template .jsdoc2md/README.hbs --files src/index.js >README.md"
   },
   "dependencies": {
     "mime": "^2.4.4",
@@ -16,6 +18,11 @@
     "superagent": "^5.1.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.6.4",
+    "@babel/preset-env": "^7.6.3",
+    "@babel/register": "^7.6.2",
+    "jsdoc-babel": "^0.5.0",
+    "jsdoc-to-markdown": "^5.0.2",
     "mocha": "^3.5.3",
     "should": "^13.2.3"
   },
