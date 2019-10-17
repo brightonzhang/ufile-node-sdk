@@ -1,5 +1,6 @@
 # ufile-node-sdk
 ufile官方的Node SDK改进
+
 (分片上传及bucket操作暂未实现，请勿使用)
 
 接口参数和返回参考<https://docs.ucloud.cn/api/ufile-api/index>
