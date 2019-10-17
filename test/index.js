@@ -10,13 +10,13 @@ const ufile = new UFile(config);
 
 const RunTest = function () {
   this.timeout(5000);
-  it('UploadHit', UploadHit);
-  it('PutFile', PutFile);
+  // it('UploadHit', UploadHit);
+  // it('PutFile', PutFile);
   it('GetFile', GetFile);
-  it('TransferFile', TransferFile);
-  it('HeadFile', HeadFile);
-  it('DeleteFile', DeleteFile);
-  it('PrefixFileList', PrefixFileList);
+  // it('TransferFile', TransferFile);
+  // it('HeadFile', HeadFile);
+  // it('DeleteFile', DeleteFile);
+  // it('PrefixFileList', PrefixFileList);
 
 };
 const HeadFile = async function () {

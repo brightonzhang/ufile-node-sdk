@@ -131,7 +131,7 @@ class UFile {
           });
         fs.createReadStream(filePath).pipe(uploadStream);
       })
-      console.log(' ', chalk.bgBlue('Upload complete'), '\n');
+      console.log('', chalk.bgBlue(' Upload Complete '), '\n');
       const { request: { href: url } = {} } = response;
       uploadRes = { code: 1, url }
     } catch (error) {
@@ -184,7 +184,7 @@ class UFile {
               const speed = ((bar.curr / ((new Date - bar.start) / 1000)) / 1048576).toFixed(1);
               bar.tick(chunk.length, { speed });
               if (bar.complete) {
-                console.log(' ', chalk.bgBlue('Upload complete'));
+                console.log('', chalk.bgBlue(' Download complete '));
                 console.log('\n');
               }
             });
