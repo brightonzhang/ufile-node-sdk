@@ -76,12 +76,6 @@ class UFile {
     */
   async uploadHit({ key, file_path, prefix, filename, unique = false } = {}) {
     key = key || getKey(file_path, prefix, filename, unique);
-    // try {
-    //   const etag = await getEtag(file_path, fileSize);
-    //   return etag;
-    // } catch (error) {
-    //   return Promise.reject(error);
-    // }
     try {
       const method = "POST";
       const fileSize = getFileSize(file_path);
@@ -98,11 +92,11 @@ class UFile {
       });
     } catch (error) {
       if (error.statusCode === 404) {
-        return { code: 0, url: '' };
+        return { code: 0, url: '', msg: 'Not hit' };
       }
       return Promise.reject(error);
     }
-    return { code: 1, url: `${this.resoureUrl}/${key}` };
+    return { code: 1, url: `${this.resoureUrl}/${key}`, msg: 'Hit success' };
   }
 
 

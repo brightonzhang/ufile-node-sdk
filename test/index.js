@@ -16,7 +16,7 @@ const RunTest = function () {
   // it('HeadFile', HeadFile);
   // it('DeleteFile', DeleteFile);
   // it('PrefixFileList', PrefixFileList);
-  it('UploadHit', UploadHit);
+  // it('UploadHit', UploadHit);
 
 };
 const HeadFile = async function () {
@@ -30,7 +30,7 @@ const HeadFile = async function () {
 }
 const UploadHit = async function () {
   try {
-    const file_path = './img/about.jpg';
+    const file_path = './img/The-Slow-Dock.webm';
     const prefix = 'test';
     const filename = 'upload_hit'
     const res = await ufile.uploadHit({ file_path, prefix, filename });
