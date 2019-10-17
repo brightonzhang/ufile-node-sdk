@@ -13,8 +13,8 @@ ufile官方的Node SDK改进
 * [UFile](#UFile)
     * [new UFile(publicKey, privateKey, bucket, domain, protocol)](#new_UFile_new)
     * [.getPrefixFileList(prefix, marker, limit)](#UFile+getPrefixFileList) ⇒ <code>Promise</code>
-    * [.uploadHit(hash, fileName, fileSize)](#UFile+uploadHit) ⇒ <code>Promise</code>
-    * [.putFile(key, file_path, prefix, filename, unique)](#UFile+putFile) ⇒ <code>Object</code>
+    * [.uploadHit(key, filePath, prefix, fileRename, unique)](#UFile+uploadHit) ⇒ <code>Object</code>
+    * [.putFile(key, filePath, prefix, fileRename, unique)](#UFile+putFile) ⇒ <code>Object</code>
     * [.getFile(key)](#UFile+getFile) ⇒ <code>Object</code>
     * [.transferFile(urlArr)](#UFile+transferFile) ⇒ <code>Array</code>
     * [.headFile(key)](#UFile+headFile) ⇒ <code>Object</code>
@@ -58,20 +58,23 @@ UFile SDK
 
 <a name="UFile+uploadHit"></a>
 
-### uFile.uploadHit(hash, fileName, fileSize) ⇒ <code>Promise</code>
+### uFile.uploadHit(key, filePath, prefix, fileRename, unique) ⇒ <code>Object</code>
 秒传文件
 
 **Kind**: instance method of [<code>UFile</code>](#UFile)  
+**Returns**: <code>Object</code> - 状态码及上传成功的资源路径  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| hash | <code>string</code> | 待上传文件的ETag,详见ETag生成文档 |
-| fileName | <code>string</code> | Bucket中文件的名称 |
-| fileSize | <code>string</code> | 待上传文件的大小 |
+| key | <code>string</code> | 文件key，会屏蔽prefix和fileRename |
+| filePath | <code>string</code> | 待上传文件的路径 |
+| prefix | <code>string</code> | 文件前缀 |
+| fileRename | <code>string</code> | 重命名文件名（若无后缀会自动加上后缀） |
+| unique | <code>Boolean</code> \| <code>string</code> \| <code>Number</code> | 是否唯一，若传入ture则自动生成id，若传入Number或string则将其作为id |
 
 <a name="UFile+putFile"></a>
 
-### uFile.putFile(key, file_path, prefix, filename, unique) ⇒ <code>Object</code>
+### uFile.putFile(key, filePath, prefix, fileRename, unique) ⇒ <code>Object</code>
 上传文件
 
 **Kind**: instance method of [<code>UFile</code>](#UFile)  
@@ -79,10 +82,10 @@ UFile SDK
 
 | Param | Type | Description |
 | --- | --- | --- |
-| key | <code>string</code> | 文件key，会屏蔽prefix和filename |
-| file_path | <code>string</code> | 待上传文件的路径 |
+| key | <code>string</code> | 文件key，会屏蔽prefix和fileRename |
+| filePath | <code>string</code> | 待上传文件的路径 |
 | prefix | <code>string</code> | 文件前缀 |
-| filename | <code>string</code> | 文件名（若无后缀会自动加上后缀） |
+| fileRename | <code>string</code> | 重命名文件名（若无后缀会自动加上后缀） |
 | unique | <code>Boolean</code> \| <code>string</code> \| <code>Number</code> | 是否唯一，若传入ture则自动生成id，若传入Number或string则将其作为id |
 
 <a name="UFile+getFile"></a>

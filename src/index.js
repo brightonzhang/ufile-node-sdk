@@ -69,18 +69,20 @@ class UFile {
 
   /**
     * 秒传文件
-    * @param {string} hash 待上传文件的ETag,详见ETag生成文档
-    * @param {string} fileName Bucket中文件的名称
-    * @param {string} fileSize 待上传文件的大小
-    * @returns {Promise}
+   * @param {string} key 文件key，会屏蔽prefix和fileRename
+   * @param {string} filePath 待上传文件的路径
+   * @param {string} prefix 文件前缀
+   * @param {string} fileRename 重命名文件名（若无后缀会自动加上后缀）
+   * @param {Boolean|string|Number} unique 是否唯一，若传入ture则自动生成id，若传入Number或string则将其作为id
+   * @returns {Object} 状态码及上传成功的资源路径
     */
-  async uploadHit({ key, file_path, prefix, filename, unique = false } = {}) {
-    key = key || getKey(file_path, prefix, filename, unique);
+  async uploadHit({ key, filePath, prefix, fileRename, unique = false } = {}) {
+    key = key || getKey(filePath, prefix, fileRename, unique);
     try {
       const method = "POST";
-      const fileSize = getFileSize(file_path);
+      const fileSize = getFileSize(filePath);
       const query = {
-        Hash: await getEtag(file_path, fileSize),
+        Hash: await getEtag(filePath, fileSize),
         FileName: key,
         FileSize: fileSize,
       }
@@ -103,19 +105,19 @@ class UFile {
 
   /**
    * 上传文件
-   * @param {string} key 文件key，会屏蔽prefix和filename
-   * @param {string} file_path 待上传文件的路径
+   * @param {string} key 文件key，会屏蔽prefix和fileRename
+   * @param {string} filePath 待上传文件的路径
    * @param {string} prefix 文件前缀
-   * @param {string} filename 文件名（若无后缀会自动加上后缀）
+   * @param {string} fileRename 重命名文件名（若无后缀会自动加上后缀）
    * @param {Boolean|string|Number} unique 是否唯一，若传入ture则自动生成id，若传入Number或string则将其作为id
    * @returns {Object} 状态码及上传成功的资源路径
    */
-  async putFile({ key, file_path, prefix, filename, unique = false } = {}) {
-    key = key || getKey(file_path, prefix, filename, unique);
+  async putFile({ key, filePath, prefix, fileRename, unique = false } = {}) {
+    key = key || getKey(filePath, prefix, fileRename, unique);
     const method = "PUT";
     const headers = {
-      'Content-Type': getMimeType(file_path),
-      'Content-Length': getFileSize(file_path)
+      'Content-Type': getMimeType(filePath),
+      'Content-Length': getFileSize(filePath)
     };
     let uploadRes;
     try {
@@ -127,7 +129,7 @@ class UFile {
             }
             console.log(chalk.cyanBright('  Uploading...'));
           });
-        fs.createReadStream(file_path).pipe(uploadStream);
+        fs.createReadStream(filePath).pipe(uploadStream);
       })
       console.log(' ', chalk.bgBlue('Upload complete'), '\n');
       const { request: { href: url } = {} } = response;
@@ -143,21 +145,21 @@ class UFile {
    * @param {string} key key
    * @returns {Object} 状态码及文件保存路径
    */
-  async getFile({ url, key, file_save_dir = './download', file_save_name, containPrefix = false } = {}) {
+  async getFile({ url, key, fileSaveDir = './download', fileSaveName, containPrefix = false } = {}) {
     if (!key && !url) {
       return Promise.reject('Define url or key!')
     } else {
       url = url || `${this.resoureUrl}/${key}`
     }
-    if (!file_save_name) {
+    if (!fileSaveName) {
       if (containPrefix && key) {
-        file_save_name = file_save_name || key.replace(/\//g, '_');
+        fileSaveName = fileSaveName || key.replace(/\//g, '_');
       } else {
-        file_save_name = file_save_name || path.basename(url);
+        fileSaveName = fileSaveName || path.basename(url);
       }
     }
-    file_save_name = file_save_name.indexOf('.') !== -1 ? file_save_name : file_save_name + '.dl';
-    const file_save_path = path.resolve(file_save_dir, file_save_name);
+    fileSaveName = fileSaveName.indexOf('.') !== -1 ? fileSaveName : fileSaveName + '.dl';
+    const fileSavePath = path.resolve(fileSaveDir, fileSaveName);
     const method = "GET";
     let downloadRes;
     try {
@@ -168,7 +170,7 @@ class UFile {
             if (res.statusCode !== 200) {
               const { statusCode, statusMessage } = res || {};
               reject({ statusCode, statusMessage })
-              unlinkFile(file_save_path);
+              unlinkFile(fileSavePath);
               return;
             }
             const bar = new ProgressBar('  Downloading :percent [:bar] at :speed MB/s :elapseds spent', {
@@ -187,9 +189,9 @@ class UFile {
               }
             });
           });
-        downloadStream.pipe(fs.createWriteStream(file_save_path));
+        downloadStream.pipe(fs.createWriteStream(fileSavePath));
       });
-      downloadRes = { code: 1, path: file_save_path }
+      downloadRes = { code: 1, path: fileSavePath }
     } catch (error) {
       return Promise.reject(error);
     }
@@ -209,18 +211,18 @@ class UFile {
         promises.push(Promise.reject('Invalid type'))
         return false;
       }
-      const putConfig = _.pick(item, ['prefix', 'filename', 'unique', 'key']);
+      const uploadConfig = _.pick(item, ['prefix', 'fileRename', 'unique', 'key']);
 
       const promise = new Promise(async (resolve, reject) => {
-        let file_path = '';
+        let filePath = '';
         try {
-          file_path = (await this.getFile({ url: item.url })).path;
-          const { url: resUrl } = await this.putFile({ file_path, ...putConfig });
+          filePath = (await this.getFile({ url: item.url })).path;
+          const { url: resUrl } = await this.putFile({ filePath, ...uploadConfig });
           resolve(resUrl);
         } catch (error) {
           reject(error);
         }
-        unlinkFile(file_path);
+        unlinkFile(filePath);
       })
       promises.push(promise);
       return true;

@@ -9,11 +9,11 @@ const _ = require('lodash');
 const chalk = require('chalk');
 
 
-const getEtag = async (file_path, fileSize = getFileSize(file_path)) => {
+const getEtag = async (filePath, fileSize = getFileSize(filePath)) => {
   assert(fileSize >= 0);
   if (fileSize <= 4 * 1024 * 1024) {
     try {
-      let [cnt, sha1] = await _SmallSha1(file_path);
+      let [cnt, sha1] = await _SmallSha1(filePath);
       let blkcnt = Buffer.alloc(4);
       blkcnt.writeUInt32LE(cnt, 0);
       const con = Buffer.concat([blkcnt, sha1]);
@@ -24,7 +24,7 @@ const getEtag = async (file_path, fileSize = getFileSize(file_path)) => {
     }
   } else {
     try {
-      let [cnt, sha1] = await _ChunkSha1(file_path);
+      let [cnt, sha1] = await _ChunkSha1(filePath);
       let blkcnt = Buffer.alloc(4);
       blkcnt.writeUInt32LE(cnt, 0);
       const con = Buffer.concat([blkcnt, sha1]);
@@ -37,11 +37,11 @@ const getEtag = async (file_path, fileSize = getFileSize(file_path)) => {
 }
 
 
-const _SmallSha1 = (file_path) => {
+const _SmallSha1 = (filePath) => {
   return new Promise((resolve, reject) => {
     try {
       let sha1 = crypto.createHash('sha1');
-      const readStream = fs.createReadStream(file_path);
+      const readStream = fs.createReadStream(filePath);
       readStream.on('data', (chunk) => {
         sha1.update(chunk);
       });
@@ -54,7 +54,7 @@ const _SmallSha1 = (file_path) => {
   });
 }
 
-const _ChunkSha1 = (file_path) => {
+const _ChunkSha1 = (filePath) => {
   const block_size = 4 * 1024 * 1024;
   return new Promise((resolve, reject) => {
     try {
@@ -63,7 +63,7 @@ const _ChunkSha1 = (file_path) => {
       let block = 0;
       let count = 0;
 
-      const readStream = fs.createReadStream(file_path);
+      const readStream = fs.createReadStream(filePath);
       readStream.on('data', (chunk) => {
         block += chunk.length;
         sha1.update(chunk);
@@ -111,24 +111,24 @@ const pascalObject = (obj) => {
   return r
 }
 
-const getMimeType = (file_path) => {
-  const ret = mime.getType(file_path);
+const getMimeType = (filePath) => {
+  const ret = mime.getType(filePath);
   if (!ret) {
     return "application/octet-stream";
   }
   return ret;
 }
 
-const getFileSize = (file_path) => {
-  const stats = fs.statSync(file_path);
+const getFileSize = (filePath) => {
+  const stats = fs.statSync(filePath);
   return stats.size;
 }
-const getKey = (file_path, prefix = '', filename, unique) => {
-  file_path = file_path.replace(/\\/g, "/");
+const getKey = (filePath, prefix = '', fileRename, unique) => {
+  filePath = filePath.replace(/\\/g, "/");
   prefix = !prefix || prefix.endsWith('/') ? prefix : prefix + '/';
-  filename = filename ? `${filename}${filename.indexOf('.') !== -1 ? '' : path.extname(file_path)}`
-    : path.basename(file_path);
-  let key = prefix + filename;
+  fileRename = fileRename ? `${fileRename}${fileRename.indexOf('.') !== -1 ? '' : path.extname(filePath)}`
+    : path.basename(filePath);
+  let key = prefix + fileRename;
   if (unique) {
     const id = (_.isString(unique) || _.isNumber(unique)) ? unique : shortid.generate();
     const keyArr = key.split('.');

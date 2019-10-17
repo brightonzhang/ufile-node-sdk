@@ -10,13 +10,13 @@ const ufile = new UFile(config);
 
 const RunTest = function () {
   this.timeout(5000);
+  it('UploadHit', UploadHit);
   it('PutFile', PutFile);
   it('GetFile', GetFile);
   it('TransferFile', TransferFile);
   it('HeadFile', HeadFile);
   it('DeleteFile', DeleteFile);
   it('PrefixFileList', PrefixFileList);
-  it('UploadHit', UploadHit);
 
 };
 const HeadFile = async function () {
@@ -30,10 +30,10 @@ const HeadFile = async function () {
 }
 const UploadHit = async function () {
   try {
-    const file_path = './img/The-Slow-Dock.webm';
+    const filePath = './img/The-Slow-Dock.webm';
     const prefix = 'test';
-    const filename = 'upload_hit'
-    const res = await ufile.uploadHit({ file_path, prefix, filename });
+    const fileRename = 'upload_hit';
+    const res = await ufile.uploadHit({ filePath, prefix, fileRename });
     res.should.be.Object().and.has.properties(['code', 'url']);
     console.log(res);
   } catch (error) {
@@ -70,8 +70,8 @@ const PrefixFileList = async function () {
 const PutFile = async function () {
   try {
     const prefix = 'test';
-    const file_path = './img/about.jpg';
-    const res = await ufile.putFile({ file_path, prefix });
+    const filePath = './img/about.jpg';
+    const res = await ufile.putFile({ filePath, prefix });
     res.should.be.Object().and.has.properties(['code', 'url']);
     console.log(res);
   } catch (error) {
@@ -82,7 +82,7 @@ const PutFile = async function () {
 const GetFile = async function () {
   try {
     const key = 'test/about.jpg';
-    // const file_save_dir = './download';
+    // const fileSaveDir = './download';
     const res = await ufile.getFile({ key });
     res.should.be.Object().and.has.properties(['code', 'path']);
     console.log(res);
