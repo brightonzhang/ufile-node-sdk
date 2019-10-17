@@ -129,6 +129,7 @@ class UFile {
           });
         fs.createReadStream(file_path).pipe(uploadStream);
       })
+      console.log(' ', chalk.bgBlue('Upload complete'), '\n');
       const { request: { href: url } = {} } = response;
       uploadRes = { code: 1, url }
     } catch (error) {
@@ -160,7 +161,7 @@ class UFile {
     const method = "GET";
     let downloadRes;
     try {
-      const res = await new Promise((resolve, reject) => {
+      await new Promise((resolve, reject) => {
         const downloadStream = this._sendRequest({ method, url }, resolve, reject)
           .on('response', (res) => {
             const total = parseInt(res.headers['content-length']);
@@ -181,6 +182,7 @@ class UFile {
               const speed = ((bar.curr / ((new Date - bar.start) / 1000)) / 1048576).toFixed(1);
               bar.tick(chunk.length, { speed });
               if (bar.complete) {
+                console.log(' ', chalk.bgBlue('Upload complete'));
                 console.log('\n');
               }
             });

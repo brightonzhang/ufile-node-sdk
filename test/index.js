@@ -1,7 +1,7 @@
 const should = require('should');
 const path = require('path');
 const UFile = require('../src/index');
-const { throwError, unlinkFile } = require('../src/helper');
+const { throwError } = require('../src/helper');
 const chalk = require('chalk');
 
 const config = require(path.resolve(process.cwd(), './ufile-config'));
@@ -10,18 +10,18 @@ const ufile = new UFile(config);
 
 const RunTest = function () {
   this.timeout(5000);
-  // it('PutFile', PutFile);
-  // it('GetFile', GetFile);
-  // it('TransferFile', TransferFile);
-  // it('HeadFile', HeadFile);
-  // it('DeleteFile', DeleteFile);
-  // it('PrefixFileList', PrefixFileList);
-  // it('UploadHit', UploadHit);
+  it('PutFile', PutFile);
+  it('GetFile', GetFile);
+  it('TransferFile', TransferFile);
+  it('HeadFile', HeadFile);
+  it('DeleteFile', DeleteFile);
+  it('PrefixFileList', PrefixFileList);
+  it('UploadHit', UploadHit);
 
 };
 const HeadFile = async function () {
   try {
-    const res = await ufile.headFile(123);
+    const res = await ufile.headFile('test/about.jpg');
     res.should.be.Object().and.has.property('etag');
     // console.log(res);
   } catch (error) {
@@ -34,7 +34,7 @@ const UploadHit = async function () {
     const prefix = 'test';
     const filename = 'upload_hit'
     const res = await ufile.uploadHit({ file_path, prefix, filename });
-    res.should.be.Object().and.has.properties(['code','url']);
+    res.should.be.Object().and.has.properties(['code', 'url']);
     console.log(res);
   } catch (error) {
     throwError(error)
@@ -42,7 +42,7 @@ const UploadHit = async function () {
 }
 const DeleteFile = async function () {
   try {
-    const res = await ufile.deleteFile(123);
+    const res = await ufile.deleteFile('test/about.jpg');
     res.should.be.Object().and.has.properties(['code', 'msg']);
     console.log(res);
   } catch (error) {
@@ -71,8 +71,7 @@ const PutFile = async function () {
   try {
     const prefix = 'test';
     const file_path = './img/about.jpg';
-    const key = 123;
-    const res = await ufile.putFile({ file_path, prefix, key });
+    const res = await ufile.putFile({ file_path, prefix });
     res.should.be.Object().and.has.properties(['code', 'url']);
     console.log(res);
   } catch (error) {
