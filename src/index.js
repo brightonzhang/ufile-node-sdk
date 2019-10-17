@@ -7,11 +7,12 @@ const config = require(path.resolve(process.cwd(), './ufile-config'));
 const chalk = require('chalk');
 
 const {
+  getEtag,
   hmacSha1,
   getKey,
   getMimeType,
   getFileSize,
-  unlinkFile
+  unlinkFile,
 } = require('./helper');
 
 
@@ -40,12 +41,12 @@ class UFile {
 
   /**
    * 前缀列表查询
-   * @param {string} [prefix=''] 前缀，utf-8编码，默认为空字符串
-   * @param {string} [marker=''] 标志字符串，utf-8编码，默认为空字符串
-   * @param {number} [limit=20] 文件列表数目，默认为20
+   * @param {string} prefix 前缀，utf-8编码
+   * @param {string} marker 标志字符串，utf-8编码
+   * @param {number} limit 文件列表数目，默认为20
    * @returns {Promise}
    */
-  async getPrefixFileList({ prefix, marker, limit }) {
+  async getPrefixFileList({ prefix, marker, limit } = {}) {
     const method = "GET";
     const query = {
       list: '',
@@ -65,13 +66,58 @@ class UFile {
     return prefixFileList;
   }
 
+
+  /**
+    * 秒传文件
+    * @param {string} hash 待上传文件的ETag,详见ETag生成文档
+    * @param {string} fileName Bucket中文件的名称
+    * @param {string} fileSize 待上传文件的大小
+    * @returns {Promise}
+    */
+  async uploadHit({ key, file_path, prefix, filename, unique = false } = {}) {
+    key = key || getKey(file_path, prefix, filename, unique);
+    // try {
+    //   const etag = await getEtag(file_path, fileSize);
+    //   return etag;
+    // } catch (error) {
+    //   return Promise.reject(error);
+    // }
+    try {
+      const method = "POST";
+      const fileSize = getFileSize(file_path);
+      const query = {
+        Hash: await getEtag(file_path, fileSize),
+        FileName: key,
+        FileSize: fileSize,
+      }
+      await this._sendRequest({
+        key,
+        method,
+        query,
+        url: `${this.resoureUrl}/uploadhit`
+      });
+    } catch (error) {
+      if (error.statusCode === 404) {
+        return { code: 0, url: '' };
+      }
+      return Promise.reject(error);
+    }
+    return { code: 1, url: `${this.resoureUrl}/${key}` };
+  }
+
+
+
   /**
    * 上传文件
-   * @param {string} key 
-   * @returns {Array} 上传成功的资源路径
+   * @param {string} key 文件key，会屏蔽prefix和filename
+   * @param {string} file_path 待上传文件的路径
+   * @param {string} prefix 文件前缀
+   * @param {string} filename 文件名（若无后缀会自动加上后缀）
+   * @param {Boolean|string|Number} unique 是否唯一，若传入ture则自动生成id，若传入Number或string则将其作为id
+   * @returns {Object} 状态码及上传成功的资源路径
    */
-  async putFile({ key, file_path, file_prefix, filename, unique = false }) {
-    key = key || getKey(file_path, file_prefix, filename, unique);
+  async putFile({ key, file_path, prefix, filename, unique = false } = {}) {
+    key = key || getKey(file_path, prefix, filename, unique);
     const method = "PUT";
     const headers = {
       'Content-Type': getMimeType(file_path),
@@ -100,9 +146,9 @@ class UFile {
   /**
    * 下载文件
    * @param {string} key key
-   * @returns {Promise}
+   * @returns {Object} 状态码及文件保存路径
    */
-  async getFile({ url, key, file_save_dir = './download', file_save_name, containPrefix = false }) {
+  async getFile({ url, key, file_save_dir = './download', file_save_name, containPrefix = false } = {}) {
     if (!key && !url) {
       return Promise.reject('Define url or key!')
     } else {
@@ -125,7 +171,7 @@ class UFile {
           .on('response', (res) => {
             const total = parseInt(res.headers['content-length']);
             if (res.statusCode !== 200) {
-              const { statusCode, statusMessage } = res;
+              const { statusCode, statusMessage } = res || {};
               reject({ statusCode, statusMessage })
               unlinkFile(file_save_path);
               return;
@@ -152,7 +198,6 @@ class UFile {
       return Promise.reject(error);
     }
     return downloadRes;
-
   }
   /**
     * 文件转移
@@ -168,18 +213,18 @@ class UFile {
         promises.push(Promise.reject('Invalid type'))
         return false;
       }
-      const putConfig = _.pick(item, ['file_prefix', 'filename', 'unique', 'key']);
+      const putConfig = _.pick(item, ['prefix', 'filename', 'unique', 'key']);
+
       const promise = new Promise(async (resolve, reject) => {
+        let file_path = '';
         try {
-          const { path: file_path } = await this.getFile({ url: item.url });
+          file_path = (await this.getFile({ url: item.url })).path;
           const { url: resUrl } = await this.putFile({ file_path, ...putConfig });
           resolve(resUrl);
-          unlinkFile(file_path).then(() => {
-            // console.log(chalk.greenBright('  Delete success'));
-          });
         } catch (error) {
           reject(error);
         }
+        unlinkFile(file_path);
       })
       promises.push(promise);
       return true;
@@ -187,28 +232,11 @@ class UFile {
     return Promise.all(promises)
   }
 
-  /**
-   * 秒传文件
-   * @param {string} hash 待上传文件的ETag,详见ETag生成文档
-   * @param {string} fileName Bucket中文件的名称
-   * @param {string} fileSize 待上传文件的大小
-   * @returns {Promise}
-   */
-  uploadHit({ hash, fileName, fileSize }) {
-    return this._sendRequest({
-      url: `${this.protocol}://${this.bucket}${this.domain}/uploadhit`,
-      query: {
-        Hash: hash,
-        FileName: fileName,
-        FileSize: fileSize,
-      }
-    })
-  }
 
   /**
    * 查询文件基本信息
    * @param {string} key
-   * @returns {Promise}
+   * @returns {Object} API响应头
    */
   async headFile(key = '') {
     if (_.isObject(key) && !_.isArray(key)) {
@@ -225,7 +253,7 @@ class UFile {
   /**
    * 删除文件
    * @param {string} key
-   * @returns {Promise}
+   * @returns {Object} 状态码和状态信息
    */
   async deleteFile(key = '') {
     if (_.isObject(key) && !_.isArray(key)) {
@@ -237,18 +265,30 @@ class UFile {
         key
       })
     } catch (error) {
-      return { code: 0, msg: error.statusMessage }
+      console.log(chalk.yellow('  Error while deleting file: file not exist'))
+      return { code: 0, msg: error.statusMessage };
     }
     return { code: 1, msg: 'Delete success' };
   }
 
-  _sendRequest({ url, method = 'GET', headers, key = '', query, body }, outerResolve, outerReject) {
+
+  /**
+   * 发送请求
+   * @param {string} url 请求的url，会屏蔽key
+   * @param {string} method 请求方法
+   * @param {string} headers 请求头 
+   * @param {string} key  请求key
+   * @param {string} query  查询参数
+   * @param {string} body 请求体
+   * @returns {request|Promise} 状态码和状态信息
+   */
+  _sendRequest({ url, method = 'GET', headers, key = '', query, body } = {}, outerResolve, outerReject) {
     url = url || `${this.resoureUrl}/${key}`;
     const options = {
       url,
       method,
       headers: {
-        Authorization: `UCloud ${this.publicKey}:${this.sign({ method, headers, key })}`,
+        Authorization: `UCloud ${this.publicKey}:${this._sign({ method, headers, key })}`,
         ...headers
       },
       qs: query,
@@ -263,7 +303,7 @@ class UFile {
         body = ''
       }
       if (error || !(response.statusCode >= 200 && response.statusCode < 300)) {
-        const { statusCode, statusMessage } = response;
+        const { statusCode, statusMessage } = response || {};
         reject({ statusCode, statusMessage, msg: error || body })
         return;
       }
@@ -278,25 +318,35 @@ class UFile {
     }
   }
 
-  sign({ method = 'GET', headers = {}, bucket = this.bucket, key = '' } = {}) {
+  /**
+   * 生成签名
+   * @param {string} method 请求方法
+   * @param {string} headers 请求头 
+   * @param {string} bucket  资源bucket
+   * @param {string} key  请求key
+   * @param {string} body 请求体
+   * @returns {request|Promise} 状态码和状态信息
+   */
+  _sign({ method = 'GET', headers = {}, bucket = this.bucket, key = '' } = {}) {
     let p = [method.toUpperCase(), getHeader('content-md5'), getHeader('content-type'), getHeader('date')]
     Object.keys(headers)
       .sort()
-      .forEach((key) => {
-        if (key.toLowerCase().startsWith('x-ucloud')) {
-          p.push(`${key.toLowerCase()}:${getHeader(key)}`)
+      .forEach((headerName) => {
+        if (headerName.toLowerCase().startsWith('x-ucloud')) {
+          p.push(`${headerName.toLowerCase()}:${getHeader(headerName)}`)
         }
       })
-    p.push(`/${bucket}/${key}`)
-    const stringToSign = p.join('\n')
-    return hmacSha1(stringToSign, this.privateKey)
+    p.push(`/${bucket}/${key}`);
+    const stringToSign = p.join('\n');
+    // console.log(stringToSign);
+    return hmacSha1(stringToSign, this.privateKey);
 
-    function getHeader(key) {
-      let r = headers[key] || headers[key.toLowerCase()]
+    function getHeader(headerName) {
+      let r = headers[headerName] || headers[headerName.toLowerCase()]
       if (r) return r
       const keys = Object.keys(headers)
       for (const k of keys) {
-        if (k.toLowerCase() === key) {
+        if (k.toLowerCase() === headerName) {
           return headers[k]
         }
       }
@@ -305,20 +355,6 @@ class UFile {
   }
 
 
-  _sign(req, key) {
-    let p = [req.method.toUpperCase(), req.get('content-md5') || '', req.get('content-type') || '', req.get('date') || '']
-
-    Object.keys(req.header)
-      .sort()
-      .forEach((key) => {
-        if (key.startsWith('X-UCloud')) {
-          p.push(`${key.toLowerCase()}:${req.get(key)}`)
-        }
-      })
-    p.push(`/${this.bucket}${key}`)
-    const stringToSign = p.join('\n')
-    return hmacSha1(stringToSign, this.privateKey)
-  }
 
 
 

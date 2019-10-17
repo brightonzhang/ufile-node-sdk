@@ -1,3 +1,4 @@
+const assert = require('assert');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -7,11 +8,101 @@ const shortid = require('shortid');
 const _ = require('lodash');
 const chalk = require('chalk');
 
-function hmacSha1(str, privateKey, digest = 'base64') {
+
+const getEtag = async (file_path, fileSize = getFileSize(file_path)) => {
+  assert(fileSize >= 0);
+  if (fileSize <= 4 * 1024 * 1024) {
+    try {
+      let [cnt, sha1] = await _SmallSha1(file_path);
+      let blkcnt = Buffer.alloc(4);
+      blkcnt.writeUInt32LE(cnt, 0);
+      const con = Buffer.concat([blkcnt, sha1]);
+      const hash = _UrlsafeBase64Encode(con);
+      return hash;
+    } catch (error) {
+      throwError(error)
+    }
+  } else {
+    try {
+      let [cnt, sha1] = await _ChunkSha1(file_path);
+      let blkcnt = Buffer.alloc(4);
+      blkcnt.writeUInt32LE(cnt, 0);
+      const con = Buffer.concat([blkcnt, sha1]);
+      const hash = _UrlsafeBase64Encode(con);
+      return hash;
+    } catch (error) {
+      throwError(error)
+    }
+  }
+}
+
+
+const _SmallSha1 = (file_path) => {
+  return new Promise((resolve, reject) => {
+    try {
+      let sha1 = crypto.createHash('sha1');
+      const readStream = fs.createReadStream(file_path);
+      readStream.on('data', (chunk) => {
+        sha1.update(chunk);
+      });
+      readStream.on('end', () => {
+        resolve([1, sha1.digest()]);
+      });
+    } catch (error) {
+      reject(error)
+    }
+  });
+}
+
+const _ChunkSha1 = (file_path) => {
+  const block_size = 4 * 1024 * 1024;
+  return new Promise((resolve, reject) => {
+    try {
+      let sha1 = crypto.createHash('sha1');
+      let g_sha1 = crypto.createHash('sha1');
+      let block = 0;
+      let count = 0;
+
+      const readStream = fs.createReadStream(file_path);
+      readStream.on('data', (chunk) => {
+        block += chunk.length;
+        sha1.update(chunk);
+        if (block == block_size) {
+          g_sha1.update(sha1.digest());
+          sha1 = crypto.createHash('sha1');
+          block = 0;
+          count++;
+        }
+      });
+      readStream.on('end', () => {
+        if (block > 0) {
+          g_sha1.update(sha1.digest());
+          count++;
+        }
+        resolve([count, g_sha1.digest()]);
+      });
+    } catch (error) {
+      reject(error)
+    }
+  });
+
+}
+const _UrlsafeBase64Encode = function (buf) {
+  const encoded = buf.toString('base64');
+  return _Base64ToUrlSafe(encoded);
+}
+
+const _Base64ToUrlSafe = function (value) {
+  return value.replace(/\//g, '_').replace(/\+/g, '-');
+}
+
+
+
+const hmacSha1 = (str, privateKey, digest = 'base64') => {
   return crypto.createHmac('sha1', privateKey).update(str).digest(digest)
 }
 
-function pascalObject(obj) {
+const pascalObject = (obj) => {
   const r = {};
   Object.keys(obj)
     .forEach((key) => {
@@ -20,24 +111,24 @@ function pascalObject(obj) {
   return r
 }
 
-function getMimeType(file_path) {
-  var ret = mime.getType(file_path);
+const getMimeType = (file_path) => {
+  const ret = mime.getType(file_path);
   if (!ret) {
     return "application/octet-stream";
   }
   return ret;
 }
 
-function getFileSize(file_path) {
-  var stats = fs.statSync(file_path);
+const getFileSize = (file_path) => {
+  const stats = fs.statSync(file_path);
   return stats.size;
 }
-function getKey(file_path, file_prefix = '', filename, unique) {
+const getKey = (file_path, prefix = '', filename, unique) => {
   file_path = file_path.replace(/\\/g, "/");
-  file_prefix = !file_prefix || file_prefix.endsWith('/') ? file_prefix : file_prefix + '/';
+  prefix = !prefix || prefix.endsWith('/') ? prefix : prefix + '/';
   filename = filename ? `${filename}${filename.indexOf('.') !== -1 ? '' : path.extname(file_path)}`
     : path.basename(file_path);
-  let key = file_prefix + filename;
+  let key = prefix + filename;
   if (unique) {
     const id = (_.isString(unique) || _.isNumber(unique)) ? unique : shortid.generate();
     const keyArr = key.split('.');
@@ -45,17 +136,19 @@ function getKey(file_path, file_prefix = '', filename, unique) {
   }
   return key;
 }
-function unlinkFile(file) {
-  if (_.isString(file)) {
+const unlinkFile = (file) => {
+  // console.log(chalk.bgRed(file));
+  if (_.isString(file) && _.trim(file) !== '') {
     file = [file]
   } else if (!_.isArray(file)) {
+    console.log(chalk.yellow(`  Error while unlinking file: Invalid file path`))
     return;
   }
   let deleteTask = [];
   file.forEach((item) => {
     const deletePromise = new Promise((resolve, reject) => {
       fs.unlink(item, (error) => {
-        error && console.log(chalk.yellow(`  Error while deleting file: ${error.code}`))
+        error && console.log(chalk.yellow(`  Error while unlinking file: ${error.code}`))
         resolve()
       })
     })
@@ -63,7 +156,7 @@ function unlinkFile(file) {
   })
   return Promise.all(deleteTask);
 }
-function throwError(error) {
+const throwError = (error) => {
   if (_.isError(error)) {
     throw (error)
   } else {
@@ -72,6 +165,7 @@ function throwError(error) {
 }
 
 module.exports = {
+  getEtag,
   hmacSha1,
   pascalObject,
   getKey,
