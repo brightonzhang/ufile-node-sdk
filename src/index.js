@@ -3,7 +3,7 @@ const fs = require('fs');
 const request = require('request');
 const _ = require('lodash');
 const ProgressBar = require('progress');
-const config = require(path.resolve(process.cwd(), './ufile-config'));
+const config = require(path.resolve(process.cwd(), './ufile-config.json'));
 const chalk = require('chalk');
 
 const {

@@ -4,19 +4,19 @@ const UFile = require('../src/index');
 const { throwError } = require('../src/helper');
 const chalk = require('chalk');
 
-const config = require(path.resolve(process.cwd(), './ufile-config'));
+const config = require(path.resolve(process.cwd(), './ufile-config.json'));
 const ufile = new UFile(config);
 
 
 const RunTest = function () {
   this.timeout(5000);
-  // it('UploadHit', UploadHit);
-  // it('PutFile', PutFile);
+  it('UploadHit', UploadHit);
+  it('PutFile', PutFile);
   it('GetFile', GetFile);
-  // it('TransferFile', TransferFile);
-  // it('HeadFile', HeadFile);
-  // it('DeleteFile', DeleteFile);
-  // it('PrefixFileList', PrefixFileList);
+  it('TransferFile', TransferFile);
+  it('HeadFile', HeadFile);
+  it('DeleteFile', DeleteFile);
+  it('PrefixFileList', PrefixFileList);
 
 };
 const HeadFile = async function () {
