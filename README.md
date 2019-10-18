@@ -5,6 +5,8 @@ ufile官方的Node SDK改进
 
 接口参数和返回参考<https://docs.ucloud.cn/api/ufile-api/index>
 
+API配置：在根目录创建 ufile-config.json或直接在初始化时传值
+
 <a name="UFile"></a>
 
 ## UFile
