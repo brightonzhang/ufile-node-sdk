@@ -127,11 +127,11 @@ class UFile {
             if (statusCode !== 200) {
               return;
             }
-            console.log(chalk.cyanBright('  Uploading...'));
+            console.log(chalk.blue('INFO'),(' Uploading...'));
           });
         fs.createReadStream(filePath).pipe(uploadStream);
       })
-      console.log('', chalk.bgBlue(' Upload Complete '), '\n');
+      console.log(chalk.green('SUCCESS'),(' Upload Complete '), '\n');
       const { request: { href: url } = {} } = response;
       uploadRes = { code: 1, url }
     } catch (error) {
@@ -184,7 +184,7 @@ class UFile {
               const speed = ((bar.curr / ((new Date - bar.start) / 1000)) / 1048576).toFixed(1);
               bar.tick(chunk.length, { speed });
               if (bar.complete) {
-                console.log('', chalk.bgBlue(' Download complete '));
+                console.log(chalk.green('SUCCESS'),(' Download complete '));
                 console.log('\n');
               }
             });
@@ -263,7 +263,7 @@ class UFile {
         key
       })
     } catch (error) {
-      console.log(chalk.yellow('  Error while deleting file: file not exist'))
+      console.log(chalk.yellow('WARNING'),(' Remote file not exist'))
       return { code: 0, msg: error.statusMessage };
     }
     return { code: 1, msg: 'Delete success' };

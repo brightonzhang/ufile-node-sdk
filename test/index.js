@@ -10,13 +10,13 @@ const ufile = new UFile(config);
 
 const RunTest = function () {
   this.timeout(5000);
-  it('UploadHit', UploadHit);
-  it('PutFile', PutFile);
-  it('GetFile', GetFile);
+  // it('UploadHit', UploadHit);
+  // it('PutFile', PutFile);
+  // it('GetFile', GetFile);
   it('TransferFile', TransferFile);
-  it('HeadFile', HeadFile);
-  it('DeleteFile', DeleteFile);
-  it('PrefixFileList', PrefixFileList);
+  // it('HeadFile', HeadFile);
+  // it('DeleteFile', DeleteFile);
+  // it('PrefixFileList', PrefixFileList);
 
 };
 const HeadFile = async function () {
@@ -93,16 +93,13 @@ const GetFile = async function () {
 const TransferFile = async function () {
   this.timeout(50000);
   try {
-    const bucket = 'charbo';
-    const prefix = 'test';
+    const bucket = 'charbo-assets';
+    const prefix = 'CBidea';
     const urlArr = [
       {
-        url: 'https://resource.shirmy.me/blog/covers/dark-line.jpg',
+        url: 'https://charbo23.github.io/images/blogImg/ckxt1.jpg',
         prefix
-      }, {
-        url: 'https://resource.shirmy.me/blog/covers/category/coding-cover.jpg',
-        prefix
-      },
+      }
     ]
     const res = await new UFile({ bucket }).transferFile(urlArr);
     res.should.be.Array().and.match(/^http/);

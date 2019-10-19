@@ -137,18 +137,17 @@ const getKey = (filePath, prefix = '', fileRename, unique) => {
   return key;
 }
 const unlinkFile = (file) => {
-  // console.log(chalk.bgRed(file));
   if (_.isString(file) && _.trim(file) !== '') {
     file = [file]
   } else if (!_.isArray(file)) {
-    console.log(chalk.yellow(`  Error while unlinking file: Invalid file path`))
+    console.log(chalk.yellow('WARNING'),(` Error while unlinking file: Invalid file path`))
     return;
   }
   let deleteTask = [];
   file.forEach((item) => {
     const deletePromise = new Promise((resolve, reject) => {
       fs.unlink(item, (error) => {
-        error && console.log(chalk.yellow(`  Error while unlinking file: ${error.code}`))
+        error && console.log(chalk.yellow('WARNING'),(` Error while unlinking file: ${error.code}`))
         resolve()
       })
     })
