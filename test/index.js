@@ -94,10 +94,10 @@ const TransferFile = async function () {
   this.timeout(50000);
   try {
     const bucket = 'charbo-assets';
-    const prefix = 'CBidea';
+    const prefix = 'cbidea';
     const urlArr = [
       {
-        url: 'https://charbo23.github.io/images/blogImg/ckxt1.jpg',
+        url: 'http://charbo-assets.hk.ufileos.com/CBidea/sidebar-bg.jpg',
         prefix
       }
     ]
