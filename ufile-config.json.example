@@ -1,7 +1,7 @@
 {
-  "ucloud_public_key": "UCloud公钥",
-  "ucloud_private_key": "UCloud私钥",
-  "proxy_suffix": "存储所在区域域名后缀",
+  "publicKey": "UCloud公钥",
+  "privateKey": "UCloud私钥",
+  "domain": "存储所在区域域名后缀",
   "bucket": "",
   "protocol": "协议 http/https"
 }

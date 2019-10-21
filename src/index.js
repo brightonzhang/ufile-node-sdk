@@ -3,9 +3,7 @@ const fs = require('fs');
 const request = require('request');
 const _ = require('lodash');
 const ProgressBar = require('progress');
-const config = require(path.resolve(process.cwd(), './ufile-config.json'));
 const chalk = require('chalk');
-
 const {
   getEtag,
   hmacSha1,
@@ -25,7 +23,7 @@ class UFile {
    * @param {string} domain 存储空间域名
    * @param {boolean} protocol 网络协议头
    */
-  constructor({ publicKey, privateKey, bucket, domain, protocol } = config) {
+  constructor({ publicKey, privateKey, bucket, domain, protocol } = this._resolveConfig()) {
     this.publicKey = publicKey || config.publicKey;
     this.privateKey = privateKey || config.privateKey;
     this.bucket = bucket || config.bucket;
@@ -33,7 +31,15 @@ class UFile {
     this.protocol = protocol || config.protocol;
     this.resoureUrl = this._getResourceUrl();
   }
-
+  _resolveConfig() {
+    try {
+      const config = require(path.resolve(process.cwd(), './ufile-config.json'));
+      return config;
+    } catch (error) {
+      console.log(chalk.red('ERROR: Please specify UFile config while initiating or give a config file'));
+      return {};
+    }
+  }
   _getResourceUrl({ bucket, domain, protocol } = this) {
     return `${protocol || this.protocol}://${bucket || this.bucket}${domain || this.domain}`;
   }
@@ -127,11 +133,11 @@ class UFile {
             if (statusCode !== 200) {
               return;
             }
-            console.log(chalk.blue('INFO'),(' Uploading...'));
+            console.log(chalk.blue('INFO'), (' Uploading...'));
           });
         fs.createReadStream(filePath).pipe(uploadStream);
       })
-      console.log(chalk.green('SUCCESS'),(' Upload Complete '), '\n');
+      console.log(chalk.green('SUCCESS'), (' Upload Complete '), '\n');
       const { request: { href: url } = {} } = response;
       uploadRes = { code: 1, url }
     } catch (error) {
@@ -184,7 +190,7 @@ class UFile {
               const speed = ((bar.curr / ((new Date - bar.start) / 1000)) / 1048576).toFixed(1);
               bar.tick(chunk.length, { speed });
               if (bar.complete) {
-                console.log(chalk.green('SUCCESS'),(' Download complete '));
+                console.log(chalk.green('SUCCESS'), (' Download complete '));
                 console.log('\n');
               }
             });
@@ -263,7 +269,7 @@ class UFile {
         key
       })
     } catch (error) {
-      console.log(chalk.yellow('WARNING'),(' Remote file not exist'))
+      console.log(chalk.yellow('WARNING'), (' Remote file not exist'))
       return { code: 0, msg: error.statusMessage };
     }
     return { code: 1, msg: 'Delete success' };
