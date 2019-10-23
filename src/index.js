@@ -23,28 +23,46 @@ class UFile {
    * @param {string} domain 存储空间域名
    * @param {boolean} protocol 网络协议头
    */
-  constructor({ publicKey, privateKey, bucket, domain, protocol } = this._resolveConfig()) {
-    this.publicKey = publicKey || config.publicKey;
-    this.privateKey = privateKey || config.privateKey;
-    this.bucket = bucket || config.bucket;
-    this.domain = domain || config.domain;
-    this.protocol = protocol || config.protocol;
-    this.resoureUrl = this._getResourceUrl();
-  }
-  _resolveConfig() {
-    try {
-      const config = require(path.resolve(process.cwd(), './ufile-config.json'));
-      return config;
-    } catch (error) {
+  constructor(config = {}) {
+    config = this._resolveConfig(config);
+    if (!config.publicKey || !config.privateKey) {
       console.log(chalk.red('ERROR: Please specify UFile config while initiating or give a config file'));
-      return {};
+      return;
+    }
+    const { publicKey, privateKey, bucket, domain, protocol } = config;
+    this.publicKey = publicKey;
+    this.privateKey = privateKey;
+    this.bucket = bucket;
+    this.domain = domain;
+    this.protocol = protocol;
+  }
+  _resolveConfig(config) {
+    const configFilePath = path.resolve(process.cwd(), './ufile-config.json');
+    if (fs.existsSync(configFilePath)) {
+      let pathConfig = require(configFilePath);
+      return _.assign(pathConfig, config);
+    } else {
+      return config;
     }
   }
+
+
   _getResourceUrl({ bucket, domain, protocol } = this) {
     return `${protocol || this.protocol}://${bucket || this.bucket}${domain || this.domain}`;
   }
 
-
+  /**
+  * 返回一个修改部分参数的UFile对象
+  * @param {Object} props ufile配置参数
+  * @returns {UFile} 新的UFile对象
+  */
+  setProps(props) {
+    const { publicKey, privateKey, bucket, domain, protocol } = this;
+    //assign会改变原对象,不能用this直接作为参数
+    const newConfig = _.assign({ publicKey, privateKey, bucket, domain, protocol }, props);
+    return new UFile(newConfig);
+  }
+  
   /**
    * 前缀列表查询
    * @param {string} prefix 前缀，utf-8编码
@@ -96,7 +114,7 @@ class UFile {
         key,
         method,
         query,
-        url: `${this.resoureUrl}/uploadhit`
+        url: `${this._getResourceUrl()}/uploadhit`
       });
     } catch (error) {
       if (error.statusCode === 404) {
@@ -104,7 +122,7 @@ class UFile {
       }
       return Promise.reject(error);
     }
-    return { code: 1, url: `${this.resoureUrl}/${key}`, msg: 'Hit success' };
+    return { code: 1, url: `${this._getResourceUrl()}/${key}`, msg: 'Hit success' };
   }
 
 
@@ -155,7 +173,7 @@ class UFile {
     if (!key && !url) {
       return Promise.reject('Define url or key!')
     } else {
-      url = url || `${this.resoureUrl}/${key}`
+      url = url || `${this._getResourceUrl()}/${key}`
     }
     if (!fileSaveName) {
       if (containPrefix && key) {
@@ -287,7 +305,7 @@ class UFile {
    * @returns {request|Promise} 状态码和状态信息
    */
   _sendRequest({ url, method = 'GET', headers, key = '', query, body } = {}, outerResolve, outerReject) {
-    url = url || `${this.resoureUrl}/${key}`;
+    url = url || `${this._getResourceUrl()}/${key}`;
     const options = {
       url,
       method,

@@ -14,6 +14,7 @@ API配置：在根目录创建 ufile-config.json或直接在初始化时传值
 
 * [UFile](#UFile)
     * [new UFile(publicKey, privateKey, bucket, domain, protocol)](#new_UFile_new)
+    * [.setProps(props)](#UFile+setProps) ⇒ [<code>UFile</code>](#UFile)
     * [.getPrefixFileList(prefix, marker, limit)](#UFile+getPrefixFileList) ⇒ <code>Promise</code>
     * [.uploadHit(key, filePath, prefix, fileRename, unique)](#UFile+uploadHit) ⇒ <code>Object</code>
     * [.putFile(key, filePath, prefix, fileRename, unique)](#UFile+putFile) ⇒ <code>Object</code>
@@ -44,6 +45,18 @@ UFile SDK
 | bucket | <code>string</code> | 存储空间名 |
 | domain | <code>string</code> | 存储空间域名 |
 | protocol | <code>boolean</code> | 网络协议头 |
+
+<a name="UFile+setProps"></a>
+
+### uFile.setProps(props) ⇒ [<code>UFile</code>](#UFile)
+返回一个修改部分参数的UFile对象
+
+**Kind**: instance method of [<code>UFile</code>](#UFile)  
+**Returns**: [<code>UFile</code>](#UFile) - 新的UFile对象  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| props | <code>Object</code> | ufile配置参数 |
 
 <a name="UFile+getPrefixFileList"></a>
 

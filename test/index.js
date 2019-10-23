@@ -4,19 +4,19 @@ const UFile = require('../src/index');
 const { throwError } = require('../src/helper');
 const chalk = require('chalk');
 
-const config = require(path.resolve(process.cwd(), './ufile-config.json'));
-const ufile = new UFile(config);
+// const config = require(path.resolve(process.cwd(), './ufile-config.json'));
+const ufile = new UFile();
 
 
 const RunTest = function () {
   this.timeout(5000);
-  // it('UploadHit', UploadHit);
-  // it('PutFile', PutFile);
-  // it('GetFile', GetFile);
+  it('UploadHit', UploadHit);
+  it('PutFile', PutFile);
+  it('GetFile', GetFile);
   it('TransferFile', TransferFile);
-  // it('HeadFile', HeadFile);
-  // it('DeleteFile', DeleteFile);
-  // it('PrefixFileList', PrefixFileList);
+  it('HeadFile', HeadFile);
+  it('DeleteFile', DeleteFile);
+  it('PrefixFileList', PrefixFileList);
 
 };
 const HeadFile = async function () {
@@ -82,8 +82,8 @@ const PutFile = async function () {
 const GetFile = async function () {
   try {
     const key = 'test/about.jpg';
-    // const fileSaveDir = './download';
-    const res = await ufile.getFile({ key });
+    const fileSaveDir = './download';
+    const res = await ufile.getFile({ key,fileSaveDir });
     res.should.be.Object().and.has.properties(['code', 'path']);
     console.log(res);
   } catch (error) {
@@ -94,14 +94,14 @@ const TransferFile = async function () {
   this.timeout(50000);
   try {
     const bucket = 'charbo-assets';
-    const prefix = 'cbidea';
+    const prefix = 'test';
     const urlArr = [
       {
-        url: 'http://charbo-assets.hk.ufileos.com/CBidea/sidebar-bg.jpg',
+        url: 'https://resource.shirmy.me/blog/covers/dark-line.jpg',
         prefix
       }
     ]
-    const res = await new UFile({ bucket }).transferFile(urlArr);
+    const res = await ufile.setProps({ bucket }).transferFile(urlArr);
     res.should.be.Array().and.match(/^http/);
     console.log(res);
   } catch (error) {
