@@ -54,6 +54,7 @@ const _SmallSha1 = (filePath) => {
   });
 }
 
+
 const _ChunkSha1 = (filePath) => {
   const block_size = 4 * 1024 * 1024;
   return new Promise((resolve, reject) => {
@@ -85,8 +86,9 @@ const _ChunkSha1 = (filePath) => {
       reject(error)
     }
   });
-
 }
+
+
 const _UrlsafeBase64Encode = function (buf) {
   const encoded = buf.toString('base64');
   return _Base64ToUrlSafe(encoded);
@@ -97,10 +99,10 @@ const _Base64ToUrlSafe = function (value) {
 }
 
 
-
 const hmacSha1 = (str, privateKey, digest = 'base64') => {
   return crypto.createHmac('sha1', privateKey).update(str).digest(digest)
 }
+
 
 const pascalObject = (obj) => {
   const r = {};
@@ -111,6 +113,7 @@ const pascalObject = (obj) => {
   return r
 }
 
+
 const getMimeType = (filePath) => {
   const ret = mime.getType(filePath);
   if (!ret) {
@@ -119,10 +122,13 @@ const getMimeType = (filePath) => {
   return ret;
 }
 
+
 const getFileSize = (filePath) => {
   const stats = fs.statSync(filePath);
   return stats.size;
 }
+
+
 const getKey = (filePath, prefix = '', fileRename, unique) => {
   filePath = filePath.replace(/\\/g, "/");
   prefix = !prefix || prefix.endsWith('/') ? prefix : prefix + '/';
@@ -136,6 +142,8 @@ const getKey = (filePath, prefix = '', fileRename, unique) => {
   }
   return key;
 }
+
+
 const unlinkFile = (file) => {
   if (_.isString(file) && _.trim(file) !== '') {
     file = [file]
@@ -155,6 +163,8 @@ const unlinkFile = (file) => {
   })
   return Promise.all(deleteTask);
 }
+
+
 const throwError = (error) => {
   if (_.isError(error)) {
     throw (error)
@@ -162,6 +172,7 @@ const throwError = (error) => {
     throw (new Error(JSON.stringify(error)))
   }
 }
+
 
 module.exports = {
   getEtag,

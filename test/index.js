@@ -17,8 +17,9 @@ const RunTest = function () {
   it('HeadFile', HeadFile);
   it('DeleteFile', DeleteFile);
   it('PrefixFileList', PrefixFileList);
-
 };
+
+
 const HeadFile = async function () {
   try {
     const res = await ufile.headFile('test/about.jpg');
@@ -28,6 +29,8 @@ const HeadFile = async function () {
     throwError(error)
   }
 }
+
+
 const UploadHit = async function () {
   try {
     const filePath = './img/The-Slow-Dock.webm';
@@ -40,6 +43,8 @@ const UploadHit = async function () {
     throwError(error)
   }
 }
+
+
 const DeleteFile = async function () {
   try {
     const res = await ufile.deleteFile('test/about.jpg');
@@ -49,6 +54,8 @@ const DeleteFile = async function () {
     throwError(error)
   }
 }
+
+
 const PrefixFileList = async function () {
   try {
     const res = await ufile.getPrefixFileList({
@@ -67,6 +74,8 @@ const PrefixFileList = async function () {
     throwError(error)
   }
 }
+
+
 const PutFile = async function () {
   try {
     const prefix = 'test';
@@ -79,6 +88,7 @@ const PutFile = async function () {
   }
 }
 
+
 const GetFile = async function () {
   try {
     const key = 'test/about.jpg';
@@ -90,6 +100,8 @@ const GetFile = async function () {
     throwError(error)
   }
 }
+
+
 const TransferFile = async function () {
   this.timeout(50000);
   try {
@@ -108,6 +120,7 @@ const TransferFile = async function () {
     throwError(error)
   }
 }
+
 
 describe('UFile SDK Test', RunTest);
 

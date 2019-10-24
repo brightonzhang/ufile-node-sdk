@@ -36,6 +36,8 @@ class UFile {
     this.domain = domain;
     this.protocol = protocol;
   }
+
+
   _resolveConfig(config) {
     const configFilePath = path.resolve(process.cwd(), './ufile-config.json');
     if (fs.existsSync(configFilePath)) {
@@ -51,6 +53,7 @@ class UFile {
     return `${protocol || this.protocol}://${bucket || this.bucket}${domain || this.domain}`;
   }
 
+
   /**
   * 返回一个修改部分参数的UFile对象
   * @param {Object} props ufile配置参数
@@ -63,6 +66,7 @@ class UFile {
     return new UFile(newConfig);
   }
   
+
   /**
    * 前缀列表查询
    * @param {string} prefix 前缀，utf-8编码
@@ -164,6 +168,7 @@ class UFile {
     return uploadRes;
   }
 
+
   /**
    * 下载文件
    * @param {string} key key
@@ -221,6 +226,8 @@ class UFile {
     }
     return downloadRes;
   }
+
+
   /**
     * 文件转移
     * @param {Array} urlArr 源文件链接数组，数组元素可为字符串或对象
@@ -271,6 +278,7 @@ class UFile {
     })
     return response.headers;
   }
+
 
   /**
    * 删除文件
@@ -330,7 +338,8 @@ class UFile {
         return;
       }
       resolve({ response, body });
-    })
+    });
+
     if (outerResolve && outerReject) {
       return req(outerResolve, outerReject);
     } else {
@@ -339,6 +348,7 @@ class UFile {
       })
     }
   }
+
 
   /**
    * 生成签名
@@ -377,11 +387,6 @@ class UFile {
   }
 
 
-
-
-
-
-
   /**
    * 初始化分片上传
    * @param {string} key 文件名
@@ -396,6 +401,7 @@ class UFile {
       }
     })
   }
+
 
   /**
    * 上传分片
@@ -417,6 +423,7 @@ class UFile {
     })
   }
 
+
   /**
    * 完成分片
    * @param {string} key 文件名
@@ -437,6 +444,7 @@ class UFile {
     })
   }
 
+
   /**
    * 放弃分片
    * @param {string} key 文件名
@@ -452,6 +460,7 @@ class UFile {
       }
     })
   }
+
 
   /**
    * 获取正在执行的分片上传
@@ -471,6 +480,7 @@ class UFile {
     })
   }
 
+
   /**
    * 获取已上传成功的分片列表
    * @param {string} uploadId 上传id
@@ -485,6 +495,7 @@ class UFile {
       }
     })
   }
+
 
   /**
    * 操作文件的Meta信息
@@ -507,6 +518,7 @@ class UFile {
     })
   }
 }
+
 
 module.exports = UFile;
 
