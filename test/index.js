@@ -10,13 +10,13 @@ const ufile = new UFile();
 
 const RunTest = function () {
   this.timeout(5000);
-  it('UploadHit', UploadHit);
-  it('PutFile', PutFile);
+  // it('UploadHit', UploadHit);
+  // it('PutFile', PutFile);
   it('GetFile', GetFile);
-  it('TransferFile', TransferFile);
-  it('HeadFile', HeadFile);
-  it('DeleteFile', DeleteFile);
-  it('PrefixFileList', PrefixFileList);
+  // it('TransferFile', TransferFile);
+  // it('HeadFile', HeadFile);
+  // it('DeleteFile', DeleteFile);
+  // it('PrefixFileList', PrefixFileList);
 };
 
 
@@ -91,10 +91,18 @@ const PutFile = async function () {
 
 const GetFile = async function () {
   try {
-    const key = 'test/about.jpg';
+    let dlpromises = [];
     const fileSaveDir = './download';
-    const res = await ufile.getFile({ key,fileSaveDir });
-    res.should.be.Object().and.has.properties(['code', 'path']);
+    const keyArr = [
+      'google-assets/intersection-polyfill.js',
+    ]
+    newUfile = ufile.setProps({ bucket: 'charbo-assets' });
+    keyArr.forEach((item) => {
+      const promise = newUfile.getFile({ key: item, fileSaveDir });
+      dlpromises.push(promise);
+    })
+    const res = await Promise.all(dlpromises);
+    // res.should.be.Array();
     console.log(res);
   } catch (error) {
     throwError(error)
