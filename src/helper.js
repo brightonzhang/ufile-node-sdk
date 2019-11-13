@@ -4,10 +4,14 @@ const fs = require('fs');
 const path = require('path');
 const pascalCase = require('pascal-case');
 const mime = require('mime');
-const shortid = require('shortid');
+const nanoid = require('nanoid');
 const _ = require('lodash');
 const chalk = require('chalk');
 
+
+function uuid(length = 10) {
+  return nanoid(length);
+}
 
 const getEtag = async (filePath, fileSize = getFileSize(filePath)) => {
   assert(fileSize >= 0);
@@ -136,7 +140,7 @@ const getKey = (filePath, prefix = '', fileRename, unique) => {
     : path.basename(filePath);
   let key = prefix + fileRename;
   if (unique) {
-    const id = (_.isString(unique) || _.isNumber(unique)) ? unique : shortid.generate();
+    const id = (_.isString(unique) || _.isNumber(unique)) ? unique : uuid();
     const keyArr = key.split('.');
     key = `${keyArr[0]}_${id}.${keyArr[keyArr.length - 1]}`;
   }

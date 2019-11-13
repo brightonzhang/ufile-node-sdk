@@ -1,6 +1,6 @@
 {
   "name": "@charbo/ufile-node-sdk",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "UFile SDK for NodeJS",
   "main": "src/index.js",
   "scripts": {
@@ -13,11 +13,11 @@
     "colors-console": "^1.0.3",
     "lodash": "^4.17.15",
     "mime": "^2.4.4",
+    "nanoid": "^2.1.6",
     "pascal-case": "^2.0.1",
     "progress": "^2.0.3",
     "qs": "^6.9.0",
     "request": "^2.88.0",
-    "shortid": "^2.2.15",
     "superagent": "^5.1.0"
   },
   "devDependencies": {
