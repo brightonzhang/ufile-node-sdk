@@ -173,7 +173,8 @@ const throwError = (error) => {
   if (_.isError(error)) {
     throw (error)
   } else {
-    throw (new Error(JSON.stringify(error)))
+    //格式化错误输出
+    throw (new Error(JSON.stringify(error,null,2)))
   }
 }
 

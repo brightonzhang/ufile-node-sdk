@@ -4,19 +4,18 @@ const UFile = require('../src/index');
 const { throwError } = require('../src/helper');
 const chalk = require('chalk');
 
-// const config = require(path.resolve(process.cwd(), './ufile-config.json'));
 const ufile = new UFile();
 
 
 const RunTest = function () {
   this.timeout(5000);
-  // it('UploadHit', UploadHit);
-  // it('PutFile', PutFile);
+  it('PutFile', PutFile);
+  it('UploadHit', UploadHit);
   it('GetFile', GetFile);
-  // it('TransferFile', TransferFile);
-  // it('HeadFile', HeadFile);
+  it('TransferFile', TransferFile);
+  it('HeadFile', HeadFile);
+  it('PrefixFileList', PrefixFileList);
   // it('DeleteFile', DeleteFile);
-  // it('PrefixFileList', PrefixFileList);
 };
 
 
@@ -33,7 +32,7 @@ const HeadFile = async function () {
 
 const UploadHit = async function () {
   try {
-    const filePath = './img/The-Slow-Dock.webm';
+    const filePath = './img/about.jpg';
     const prefix = 'test';
     const fileRename = 'upload_hit';
     const res = await ufile.uploadHit({ filePath, prefix, fileRename });
@@ -77,6 +76,7 @@ const PrefixFileList = async function () {
 
 
 const PutFile = async function () {
+  this.timeout(20000);
   try {
     const prefix = 'test';
     const filePath = './img/about.jpg';
@@ -94,11 +94,10 @@ const GetFile = async function () {
     let dlpromises = [];
     const fileSaveDir = './download';
     const keyArr = [
-      'google-assets/intersection-polyfill.js',
+      'test/about.jpg',
     ]
-    newUfile = ufile.setProps({ bucket: 'charbo-assets' });
     keyArr.forEach((item) => {
-      const promise = newUfile.getFile({ key: item, fileSaveDir });
+      const promise = ufile.getFile({ key: item, fileSaveDir });
       dlpromises.push(promise);
     })
     const res = await Promise.all(dlpromises);
@@ -113,7 +112,6 @@ const GetFile = async function () {
 const TransferFile = async function () {
   this.timeout(50000);
   try {
-    const bucket = 'charbo-assets';
     const prefix = 'test';
     const urlArr = [
       {
@@ -121,7 +119,7 @@ const TransferFile = async function () {
         prefix
       }
     ]
-    const res = await ufile.setProps({ bucket }).transferFile(urlArr);
+    const res = await ufile.transferFile(urlArr);
     res.should.be.Array().and.match(/^http/);
     console.log(res);
   } catch (error) {

@@ -3,5 +3,6 @@
   "privateKey": "UCloud私钥",
   "domain": "存储所在区域域名后缀",
   "bucket": "",
-  "protocol": "协议 http/https"
+  "protocol": "协议 http/https",
+  "cdnDomain":"CDN域名，会替代返回url中的源站域名，但不会更改上传时的域名"
 }

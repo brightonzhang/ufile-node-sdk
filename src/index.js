@@ -29,12 +29,13 @@ class UFile {
       console.log(chalk.red('ERROR: Please specify UFile config while initiating or give a config file'));
       return;
     }
-    const { publicKey, privateKey, bucket, domain, protocol } = config;
+    const { publicKey, privateKey, bucket, domain, protocol, cdnDomain } = config;
     this.publicKey = publicKey;
     this.privateKey = privateKey;
     this.bucket = bucket;
     this.domain = domain;
     this.protocol = protocol;
+    this.cdnDomain = cdnDomain;
   }
 
 
@@ -49,8 +50,13 @@ class UFile {
   }
 
 
-  _getResourceUrl({ bucket, domain, protocol } = this) {
-    return `${protocol || this.protocol}://${bucket || this.bucket}${domain || this.domain}`;
+  _getResourceUrl(key = '') {
+    return `${this.protocol}://${this.bucket}${this.domain}${!!key ? `/${key}` : ''}`;
+  }
+
+
+  _getCdnUrl(key = '') {
+    return !!this.cdnDomain ? `${this.protocol}://${this.cdnDomain}${!!key ? `/${key}` : ''}` : this._getResourceUrl(key);
   }
 
 
@@ -65,7 +71,7 @@ class UFile {
     const newConfig = _.assign({ publicKey, privateKey, bucket, domain, protocol }, props);
     return new UFile(newConfig);
   }
-  
+
 
   /**
    * 前缀列表查询
@@ -126,7 +132,7 @@ class UFile {
       }
       return Promise.reject(error);
     }
-    return { code: 1, url: `${this._getResourceUrl()}/${key}`, msg: 'Hit success' };
+    return { code: 1, url: `${this._getCdnUrl(key)}`, msg: 'Hit success' };
   }
 
 
@@ -141,6 +147,8 @@ class UFile {
    * @returns {Object} 状态码及上传成功的资源路径
    */
   async putFile({ key, filePath, prefix, fileRename, unique = false } = {}) {
+    console.log(chalk.blue('INFO'), (' Uploading...'));
+
     key = key || getKey(filePath, prefix, fileRename, unique);
     const method = "PUT";
     const headers = {
@@ -155,13 +163,12 @@ class UFile {
             if (statusCode !== 200) {
               return;
             }
-            console.log(chalk.blue('INFO'), (' Uploading...'));
           });
         fs.createReadStream(filePath).pipe(uploadStream);
       })
       console.log(chalk.green('SUCCESS'), (' Upload Complete '), '\n');
-      const { request: { href: url } = {} } = response;
-      uploadRes = { code: 1, url }
+
+      uploadRes = { code: 1, url: `${this._getCdnUrl(key)}` }
     } catch (error) {
       return Promise.reject(error);
     }
@@ -178,7 +185,7 @@ class UFile {
     if (!key && !url) {
       return Promise.reject('Define url or key!')
     } else {
-      url = url || `${this._getResourceUrl()}/${key}`
+      url = url || `${this._getCdnUrl(key)}`
     }
     if (!fileSaveName) {
       if (containPrefix && key) {
@@ -313,7 +320,7 @@ class UFile {
    * @returns {request|Promise} 状态码和状态信息
    */
   _sendRequest({ url, method = 'GET', headers, key = '', query, body } = {}, outerResolve, outerReject) {
-    url = url || `${this._getResourceUrl()}/${key}`;
+    url = url || `${this._getResourceUrl(key)}`;
     const options = {
       url,
       method,
