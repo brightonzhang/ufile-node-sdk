@@ -10,11 +10,11 @@ const ufile = new UFile();
 const RunTest = function () {
   this.timeout(5000);
   it('PutFile', PutFile);
-  it('UploadHit', UploadHit);
-  it('GetFile', GetFile);
-  it('TransferFile', TransferFile);
-  it('HeadFile', HeadFile);
-  it('PrefixFileList', PrefixFileList);
+  // it('UploadHit', UploadHit);
+  // it('GetFile', GetFile);
+  // it('TransferFile', TransferFile);
+  // it('HeadFile', HeadFile);
+  // it('PrefixFileList', PrefixFileList);
   // it('DeleteFile', DeleteFile);
 };
 
@@ -79,7 +79,7 @@ const PutFile = async function () {
   this.timeout(20000);
   try {
     const prefix = 'test';
-    const filePath = './img/about.jpg';
+    const filePath = './img/test.png';
     const res = await ufile.putFile({ filePath, prefix });
     res.should.be.Object().and.has.properties(['code', 'url']);
     console.log(res);

@@ -19,8 +19,10 @@ selenium-debug.log
 *.sln
 *.local
 
+/.jsdoc2md
 /docs
 /download
 /img
 /test
 ufile-config.json
+.jsdoc.json
