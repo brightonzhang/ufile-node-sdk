@@ -35,12 +35,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Charbo23/ufile.git"
+    "url": "git+https://github.com/Charbo23/ufile-node-sdk.git"
   },
   "author": "charbo",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Charbo23/ufile/issues"
+    "url": "https://github.com/Charbo23/ufile-node-sdk/issues"
   },
-  "homepage": "https://github.com/Charbo23/ufile#readme"
+  "homepage": "https://github.com/Charbo23/ufile-node-sdk#readme"
 }
